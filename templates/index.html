@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+    <title>Metoda</title>
+    <link rel="stylesheet" href="/static/styles/index_style.css">
+</head>
+<header>
+    <h1>
+        <a href="/hello"><img src="/static/img/image.png" alt="home"></a>
+    </h1>
+</header>
+<form action="/hello" method="GET">
+    <input type="text" name="query" placeholder="Введите запрос" value="{{ .query }}">
+    <!-- value="{{ .query }}"  нужно для того, чтобы из обработчика передавать
+    введенный запрос обратно на страницу. Тем самым введенный текст в поле поиска будет сохраняться-->
+    <button type="submit">Найти</button>
+</form>
+    <h2>
+        {{ .time }}
+    </h2>
+    <ul>
+        {{ range .orders }}
+        <li>
+            <a href="/order/{{ .ID }}"> {{ .Title }} </a>
+        </li>
+        {{ end }}
+    </ul>
+</html>
