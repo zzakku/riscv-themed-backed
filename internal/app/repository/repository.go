@@ -22,6 +22,8 @@ type Command struct { // вот наша новая структура
 	CardImage   string // ОБЯЗАТЕЛЬНО должны быть написаны с заглавной буквы (то есть публичными)
 }
 
+//TO-DO: "Словарь" заявок??
+
 type Request struct {
 	ID        int
 	Commands  []Command // Список команд
@@ -105,7 +107,6 @@ func (r *Repository) GetCommands() ([]Command, error) {
 }
 
 func (r *Repository) GetRequests() ([]Request, error) {
-	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
 	requests := []Request{ // массив элементов из наших структур
 		{
 			ID: 1,
@@ -116,15 +117,13 @@ func (r *Repository) GetRequests() ([]Request, error) {
 					Fmt:         "rd, rs, imm",
 					RsNum:       1,
 					RdNum:       2,
-					CardImage:   "first command",
+					CardImage:   "/static/img/and.jpg",
 					Description: "Число в rs складывается с imm, результат записывается в rd.",
 				},
 			},
 			NumParams: []int{1},
 		},
 	}
-	// обязательно проверяем ошибки, и если они появились - передаем выше, то есть хендлеру
-	// тут я снова искусственно обработаю "ошибку" чисто чтобы показать вам как их передавать выше
 	if len(requests) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}

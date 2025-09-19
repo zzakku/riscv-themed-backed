@@ -62,15 +62,15 @@ func (h *Handler) GetCommand(ctx *gin.Context) {
 }
 
 func (h *Handler) GetRequest(ctx *gin.Context) {
-	var commands []repository.Command
+	var requests []repository.Request
 	var err error
 
-	commands, err = h.Repository.GetCommands()
+	requests, err = h.Repository.GetRequests()
 	if err != nil {
 		logrus.Error(err)
 	}
 
 	ctx.HTML(http.StatusOK, "request.html", gin.H{
-		"commands": commands,
+		"requests": requests,
 	})
 }

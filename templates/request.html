@@ -27,17 +27,17 @@
     <p class="column_name caption">Регистр-источник</p>
     <p class="column_name caption">Регистр для результата</p>
     <p class="column_name caption">Числовой операнд</p>
-    {{ range .commands }}
+    {{ range .requests }}
         <div id="card" class="card">
-        <img src="/static/img/image.png" class="card_image cell">
-        <p class="col_content_text cell">{{ .ComName }}</p>
-        <p class="col_content_text cell">{{ .Fmt }}</p>
-        <p class="col_content_text cell">{{ .RsNum }}</p>
-        <p class="col_content_text cell">{{ .RdNum }}</p>
-        <input type="number" placeholder="Введите значение" class = "cell">
+        <img src="{{ (index .Commands 0).CardImage}}" class="card_image cell">
+        <p class="col_content_text cell">{{ (index .Commands 0).ComName}}</p>
+        <p class="col_content_text cell">{{ (index .Commands 0).Fmt}}</p>
+        <p class="col_content_text cell">{{ (index .Commands 0).RsNum}}</p>
+        <p class="col_content_text cell">{{ (index .Commands 0).RdNum}}</p>
+        <input type="number" value="{{  index .NumParams 0 }}" placeholder="Введите значение" class = "cell">
         </div>
     {{end}}
 </div>
 
 <p class="caption init_and_res">Результат</p>
-<div class="result_box">x1: 0xEE, x2: 0x1F</div>
+<div class="result_box">t1: 0xEE, t2: 0x1F</div>
