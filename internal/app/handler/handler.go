@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"r-vBackend/internal/app/repository"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -20,45 +19,58 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetOrders(ctx *gin.Context) {
-	var orders []repository.Order
+func (h *Handler) GetCommands(ctx *gin.Context) {
+	var commands []repository.Command
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поля поиска
-	if searchQuery == "" {            // если поле поиска пусто, то просто получаем из репозитория все записи
-		orders, err = h.Repository.GetOrders()
+	searchQuery := ctx.Query("searchQuery") // получаем значение из поля поиска
+	if searchQuery == "" {                  // если поле поиска пусто, то просто получаем из репозитория все записи
+		commands, err = h.Repository.GetCommands()
 		if err != nil {
 			logrus.Error(err)
 		}
 	} else {
-		orders, err = h.Repository.GetOrdersByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+		commands, err = h.Repository.GetCommandsByName(searchQuery) // в ином случае ищем заказ по заголовку
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"time":   time.Now().Format("15:04:05"),
-		"orders": orders,
-		"query":  searchQuery, // передаем введенный запрос обратно на страницу
+		"commands":    commands,
+		"searchQuery": searchQuery, // передаем введенный запрос обратно на страницу
 		// в ином случае оно будет очищаться при нажатии на кнопку
 	})
 }
 
-func (h *Handler) GetOrder(ctx *gin.Context) {
-	idStr := ctx.Param("id") // получаем id заказа из урла (то есть из /order/:id)
+func (h *Handler) GetCommand(ctx *gin.Context) {
+	idStr := ctx.Param("id") // получаем id заказа из урла (то есть из /command/:id)
 	// через двоеточие мы указываем параметры, которые потом сможем считать через функцию выше
 	id, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	order, err := h.Repository.GetOrder(id)
+	command, err := h.Repository.GetCommand(id)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "order.html", gin.H{
-		"order": order,
+	ctx.HTML(http.StatusOK, "details.html", gin.H{
+		"command": command,
+	})
+}
+
+func (h *Handler) GetRequest(ctx *gin.Context) {
+	var commands []repository.Command
+	var err error
+
+	commands, err = h.Repository.GetCommands()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	ctx.HTML(http.StatusOK, "request.html", gin.H{
+		"commands": commands,
 	})
 }

@@ -12,61 +12,151 @@ func NewRepository() (*Repository, error) {
 	return &Repository{}, nil
 }
 
-type Order struct { // вот наша новая структура
-	ID    int    // поля структур, которые передаются в шаблон
-	Title string // ОБЯЗАТЕЛЬНО должны быть написаны с заглавной буквы (то есть публичными)
+type Command struct { // вот наша новая структура
+	ID          int // поля структур, которые передаются в шаблон
+	ComName     string
+	Fmt         string
+	RsNum       int
+	RdNum       int
+	Description string
+	CardImage   string // ОБЯЗАТЕЛЬНО должны быть написаны с заглавной буквы (то есть публичными)
 }
 
-func (r *Repository) GetOrders() ([]Order, error) {
+type Request struct {
+	ID        int
+	Commands  []Command // Список команд
+	NumParams []int     // Список параметров для них
+}
+
+func (r *Repository) GetCommands() ([]Command, error) {
 	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
-	orders := []Order{ // массив элементов из наших структур
+	commands := []Command{ // массив элементов из наших структур
 		{
-			ID:    1,
-			Title: "first order",
+			ID:          1,
+			ComName:     "Shift Right Logical Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/shiftright.png",
+			Description: "Выполняет операцию побитового сдвига числа rs на imm позиции вправо, после чего число записывается в rd.",
 		},
 		{
-			ID:    2,
-			Title: "second order",
+			ID:          2,
+			ComName:     "Shift Left Logical Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/shiftleft.png",
+			Description: "Выполняет операцию побитового сдвига числа rs на imm позиции влево, после чего число записывается в rd.",
 		},
 		{
-			ID:    3,
-			Title: "third order",
+			ID:          3,
+			ComName:     "ADD Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/addi.jpg",
+			Description: "Число в rs складывается с imm, результат записывается в rd.",
+		},
+		{
+			ID:          4,
+			ComName:     "NOT",
+			Fmt:         "rd, rs",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/not.jpg",
+			Description: "Биты числа в rs инвертируются, результат записывается в rd.",
+		},
+		{
+			ID:          5,
+			ComName:     "XOR Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/xori.png",
+			Description: "Побитово производится операция исключающее ИЛИ над числами rs и imm, результат записывается в rd.",
+		},
+		{
+			ID:          6,
+			ComName:     "Bit-wise AND Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/and.jpg",
+			Description: "Побитово производится операция логическое И над числами rs и imm, результат записывается в rd.",
+		},
+		{
+			ID:          7,
+			ComName:     "Bit-wise OR Immediate",
+			Fmt:         "rd, rs, imm",
+			RsNum:       1,
+			RdNum:       2,
+			CardImage:   "/static/img/or.png",
+			Description: "Побитово производится операция логическое ИЛИ над числами rs и imm, результат записывается в rd.",
 		},
 	}
 	// обязательно проверяем ошибки, и если они появились - передаем выше, то есть хендлеру
 	// тут я снова искусственно обработаю "ошибку" чисто чтобы показать вам как их передавать выше
-	if len(orders) == 0 {
+	if len(commands) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}
 
-	return orders, nil
+	return commands, nil
 }
 
-func (r *Repository) GetOrder(id int) (Order, error) {
-	// тут у вас будет логика получения нужной услуги, тоже наверное через цикл в первой лабе, и через запрос к БД начиная со второй
-	orders, err := r.GetOrders()
-	if err != nil {
-		return Order{}, err // тут у нас уже есть кастомная ошибка из нашего метода, поэтому мы можем просто вернуть ее
+func (r *Repository) GetRequests() ([]Request, error) {
+	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
+	requests := []Request{ // массив элементов из наших структур
+		{
+			ID: 1,
+			Commands: []Command{
+				{
+					ID:          3,
+					ComName:     "ADD Immediate",
+					Fmt:         "rd, rs, imm",
+					RsNum:       1,
+					RdNum:       2,
+					CardImage:   "first command",
+					Description: "Число в rs складывается с imm, результат записывается в rd.",
+				},
+			},
+			NumParams: []int{1},
+		},
+	}
+	// обязательно проверяем ошибки, и если они появились - передаем выше, то есть хендлеру
+	// тут я снова искусственно обработаю "ошибку" чисто чтобы показать вам как их передавать выше
+	if len(requests) == 0 {
+		return nil, fmt.Errorf("массив пустой")
 	}
 
-	for _, order := range orders {
-		if order.ID == id {
-			return order, nil // если нашли, то просто возвращаем найденный заказ (услугу) без ошибок
+	return requests, nil
+}
+
+func (r *Repository) GetCommand(id int) (Command, error) {
+	// тут у вас будет логика получения нужной услуги, тоже наверное через цикл в первой лабе, и через запрос к БД начиная со второй
+	commands, err := r.GetCommands()
+	if err != nil {
+		return Command{}, err // тут у нас уже есть кастомная ошибка из нашего метода, поэтому мы можем просто вернуть ее
+	}
+
+	for _, command := range commands {
+		if command.ID == id {
+			return command, nil // если нашли, то просто возвращаем найденный заказ (услугу) без ошибок
 		}
 	}
-	return Order{}, fmt.Errorf("заказ не найден") // тут нужна кастомная ошибка, чтобы понимать на каком этапе возникла ошибка и что произошло
+	return Command{}, fmt.Errorf("команда не найдена") // тут нужна кастомная ошибка, чтобы понимать на каком этапе возникла ошибка и что произошло
 }
 
-func (r *Repository) GetOrdersByTitle(title string) ([]Order, error) {
-	orders, err := r.GetOrders()
+func (r *Repository) GetCommandsByName(cname string) ([]Command, error) {
+	commands, err := r.GetCommands()
 	if err != nil {
-		return []Order{}, err
+		return []Command{}, err
 	}
 
-	var result []Order
-	for _, order := range orders {
-		if strings.Contains(strings.ToLower(order.Title), strings.ToLower(title)) {
-			result = append(result, order)
+	var result []Command
+	for _, command := range commands {
+		if strings.Contains(strings.ToLower(command.ComName), strings.ToLower(cname)) {
+			result = append(result, command)
 		}
 	}
 

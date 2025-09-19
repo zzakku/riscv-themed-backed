@@ -1,0 +1,43 @@
+<html lang="en">
+<head>
+    <title>Ассемблер RISC-V</title>
+    <link rel="stylesheet" href="/static/styles/universal.css">
+    <link rel="stylesheet" href="/static/styles/request_style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+</head>
+
+<header>
+        <div class="header_rectangle">
+          <a href="/commands"><img class="logo_image" src="/static/img/image.png" alt="logo"></a>
+        </div>
+</header>
+
+<p class="caption init_and_res">Начальные значения регистров: </p>
+<label>t1</label>
+<input type="number" placeholder="0x00" class = "init_inp">
+<label>t2</label>
+<input type="number" placeholder="0x00" class = "init_inp">
+
+<div class="contents_container">
+    <p class="column_name caption">Иллюстрация</p>
+    <p class="column_name caption">Название команды</p>
+    <p class="column_name caption">Формат</p>
+    <p class="column_name caption">Регистр-источник</p>
+    <p class="column_name caption">Регистр для результата</p>
+    <p class="column_name caption">Числовой операнд</p>
+    {{ range .commands }}
+        <div id="card" class="card">
+        <img src="/static/img/image.png" class="card_image cell">
+        <p class="col_content_text cell">{{ .ComName }}</p>
+        <p class="col_content_text cell">{{ .Fmt }}</p>
+        <p class="col_content_text cell">{{ .RsNum }}</p>
+        <p class="col_content_text cell">{{ .RdNum }}</p>
+        <input type="number" placeholder="Введите значение" class = "cell">
+        </div>
+    {{end}}
+</div>
+
+<p class="caption init_and_res">Результат</p>
+<div class="result_box">x1: 0xEE, x2: 0x1F</div>

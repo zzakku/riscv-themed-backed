@@ -1,0 +1,107 @@
+p
+{
+    font-family: 'Ubuntu';
+    font-style: normal;
+}
+
+input
+{
+    font-family: 'Ubuntu';
+    font-style: normal;    
+}
+
+.init_and_res
+{
+    margin-left: 28px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+label {
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 400;
+
+  display: inline-block;
+  width: 44px;
+  margin-right: 20px;
+  text-align: right;
+}
+
+.caption
+{
+    font-weight: 500;
+    font-size: 16px;    
+}
+
+.contents_container
+{
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-wrap: wrap;
+}
+
+.column_name
+{
+    background: #F0F1F2;
+    border: 1px solid #DDDEE1;
+    width: 162px;
+    height: 97px;
+
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    justify-content: center;
+}
+
+.cell
+{
+    box-sizing: border-box;
+    width: 164px;
+    height: 99px;
+
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #DDDEE1;    
+}
+
+.card
+{
+    display: flex;
+    order: row;
+}
+
+.init_inp
+{
+    height: 28px;
+    width: 72px;
+
+    border: 1px solid #000;
+}
+
+.result_box
+{
+    box-sizing: border-box;
+    width: 683px;
+    height: 102px;
+
+
+    font-family: 'Ubuntu';
+    font-style: normal;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 28px;
+
+    border: 1px solid #DDDEE1;    
+}
