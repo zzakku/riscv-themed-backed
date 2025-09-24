@@ -16,13 +16,10 @@
 
 <div id="navigation" class="navigation">
     <div class="searchbar_rectangle">  
-        <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg" class="mag_glass_vector">
-            <path d="M12.5048 12.5171L16.625 16.625M14.25 8.3125C14.25 11.5917 11.5917 14.25 8.3125 14.25C5.03331 14.25 2.375 11.5917 2.375 8.3125C2.375 5.03331 5.03331 2.375 8.3125 2.375C11.5917 2.375 14.25 5.03331 14.25 8.3125Z" stroke="#6B6E76" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
 
           <form action="/commands" method="GET">
             <div class="searchbar">
-              <input type="text" name="searchQuery" value="{{ .searchQuery }}" placeholder="Поиск" class = "searchbar_text">
+              <input type="text" name="searchQuery" value="{{ .searchQuery }}" placeholder="Поиск" class = "searchbar_text mag_glass">
               <button type="submit" class="btn" style="display: inline-block; height: 40px; border-radius: 4px;">Найти</button>
             </div>
           </form>
@@ -56,67 +53,6 @@
   {{end}}
 </div>
 
-<!-- <div id="card-container" class="card_group">
-    <div id="card" class="card">
-        <div class="info">
-            <img src="/static/img/image.png" class="card_image">
-            <p class="col_name_text rectangle">Название команды</p>
-            <p class="col_content_text">Shift Right Logical Immediate</p>
-            <p class="col_name_text rectangle">Формат</p>
-            <p class="col_content_text">rd, rs, imm</p>
-            <p class="col_name_text rectangle">№ регистра rs</p>
-            <p class="col_content_text">1</p>
-            <p class="col_name_text rectangle">№ регистра rd</p>
-            <p class="col_content_text">2</p>
-            <a href="" class="btn card_btn">Подробнее</a>
-        </div>
-    </div>
-    <div id="card" class="card">
-        <div class="info">
-            <img src="/static/img/image.png" class="card_image">
-            <p class="col_name_text rectangle">Название команды</p>
-            <p class="col_content_text">Shift Right Logical Immediate</p>
-            <p class="col_name_text rectangle">Формат</p>
-            <p class="col_content_text">rd, rs, imm</p>
-            <p class="col_name_text rectangle">№ регистра rs</p>
-            <p class="col_content_text">1</p>
-            <p class="col_name_text rectangle">№ регистра rd</p>
-            <p class="col_content_text">2</p>
-            <a href="" class="btn card_btn">Подробнее</a>
-        </div>
-    </div>
-    <div id="card" class="card">
-        <div class="info">
-            <img src="/static/img/image.png" class="card_image">
-            <p class="col_name_text rectangle">Название команды</p>
-            <p class="col_content_text">Shift Right Logical Immediate</p>
-            <p class="col_name_text rectangle">Формат</p>
-            <p class="col_content_text">rd, rs, imm</p>
-            <p class="col_name_text rectangle">№ регистра rs</p>
-            <p class="col_content_text">1</p>
-            <p class="col_name_text rectangle">№ регистра rd</p>
-            <p class="col_content_text">2</p>
-            <a href="" class="btn card_btn">Подробнее</a>
-        </div>
-    </div>
-    <div id="card" class="card">
-        <div class="info">
-            <img src="/static/img/image.png" class="card_image">
-            <p class="col_name_text rectangle">Название команды</p>
-            <p class="col_content_text">Shift Right Logical Immediate</p>
-            <p class="col_name_text rectangle">Формат</p>
-            <p class="col_content_text">rd, rs, imm</p>
-            <p class="col_name_text rectangle">№ регистра rs</p>
-            <p class="col_content_text">1</p>
-            <p class="col_name_text rectangle">№ регистра rd</p>
-            <p class="col_content_text">2</p>
-            <a href="" class="btn card_btn">Подробнее</a>
-        </div>
-    </div>
-</div> -->
-
-
-
 <div class="down">
 
 </div>
@@ -128,105 +64,3 @@
     <div id="button-container" class = "d-flex flex-wrap gap-3"></div>
     <div id="card-container" class="d-flex flex-wrap gap-3"></div>
 </div>
-
-<!--<div >
-  <div ></div>
-  <img  />
-
-    <div ></div>
-  </div>
-  <div >
-    <div >
-      <img  />
-      <div ></div>
-      <div ></div>
-      <div >Shift Right Logical Immediate</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-    <div >
-      <img  />
-      <div ></div>
-      <div >Название команды</div>
-      <div >ADD Immediate</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-    <div >
-      <img  />
-      <div ></div>
-      <div >Название команды</div>
-      <div >NOT</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-  </div>
-  <div >
-    <div >
-      <img  />
-      <div ></div>
-      <div >Название команды</div>
-      <div >Bit-wise OR Immediate</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-    <div >
-      <img  />
-      <div ></div>
-      <div >Название команды</div>
-      <div >Shift Left Logical Immediate</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-    <div >
-      <img  />
-      <div ></div>
-      <div >Название команды</div>
-      <div >Bit-wise OR Immediate</div>
-      <div ></div>
-      <div >Формат</div>
-      <div >rd, rs, imm</div>
-      <div ></div>
-      <div >№ регистра rs</div>
-      <div >1</div>
-      <div ></div>
-      <div >№ регистра rd</div>
-      <div >2</div>
-    </div>
-  </div>
-</div> -->
