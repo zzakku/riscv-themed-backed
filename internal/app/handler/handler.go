@@ -61,16 +61,16 @@ func (h *Handler) GetCommand(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) GetRequest(ctx *gin.Context) {
-	var requests []repository.Request
+func (h *Handler) GetProgram(ctx *gin.Context) {
+	var programs []repository.Program
 	var err error
 
-	requests, err = h.Repository.GetRequests()
+	programs, err = h.Repository.GetPrograms()
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "request.html", gin.H{
-		"requests": requests,
+	ctx.HTML(http.StatusOK, "program.html", gin.H{
+		"programs": programs,
 	})
 }

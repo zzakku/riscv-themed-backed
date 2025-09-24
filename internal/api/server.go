@@ -29,7 +29,7 @@ func StartServer() {
 
 	r.GET("/commands", handler.GetCommands)
 	r.GET("/command/:id", handler.GetCommand) // вот наш новый обработчик
-	r.GET("/request", handler.GetRequest)
+	r.GET("/program", handler.GetProgram)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	log.Println("Server down")

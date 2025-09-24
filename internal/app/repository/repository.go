@@ -24,7 +24,7 @@ type Command struct { // вот наша новая структура
 
 //TO-DO: "Словарь" заявок??
 
-type Request struct {
+type Program struct {
 	ID        int
 	Commands  []Command // Список команд
 	NumParams []int     // Список параметров для них
@@ -39,7 +39,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/shiftright.png",
+			CardImage:   "http://127.0.0.1:9000/rvimg/shiftright.png",
 			Description: "Выполняет операцию побитового сдвига числа rs на imm позиции вправо, после чего число записывается в rd.",
 		},
 		{
@@ -48,7 +48,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/shiftleft.png",
+			CardImage:   "http://127.0.0.1:9000/rvimg/shiftleft.png",
 			Description: "Выполняет операцию побитового сдвига числа rs на imm позиции влево, после чего число записывается в rd.",
 		},
 		{
@@ -57,7 +57,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/addi.jpg",
+			CardImage:   "http://127.0.0.1:9000/rvimg/addi.jpg",
 			Description: "Число в rs складывается с imm, результат записывается в rd.",
 		},
 		{
@@ -66,7 +66,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/not.jpg",
+			CardImage:   "http://127.0.0.1:9000/rvimg/not.jpg",
 			Description: "Биты числа в rs инвертируются, результат записывается в rd.",
 		},
 		{
@@ -75,7 +75,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/xori.png",
+			CardImage:   "http://127.0.0.1:9000/rvimg/xori.png",
 			Description: "Побитово производится операция исключающее ИЛИ над числами rs и imm, результат записывается в rd.",
 		},
 		{
@@ -84,7 +84,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/and.jpg",
+			CardImage:   "http://127.0.0.1:9000/rvimg/and.jpg",
 			Description: "Побитово производится операция логическое И над числами rs и imm, результат записывается в rd.",
 		},
 		{
@@ -93,7 +93,7 @@ func (r *Repository) GetCommands() ([]Command, error) {
 			Fmt:         "rd, rs, imm",
 			RsNum:       1,
 			RdNum:       2,
-			CardImage:   "/static/img/or.png",
+			CardImage:   "http://127.0.0.1:9000/rvimg/or.png",
 			Description: "Побитово производится операция логическое ИЛИ над числами rs и imm, результат записывается в rd.",
 		},
 	}
@@ -106,8 +106,8 @@ func (r *Repository) GetCommands() ([]Command, error) {
 	return commands, nil
 }
 
-func (r *Repository) GetRequests() ([]Request, error) {
-	requests := []Request{ // массив элементов из наших структур
+func (r *Repository) GetPrograms() ([]Program, error) {
+	programs := []Program{ // массив элементов из наших структур
 		{
 			ID: 1,
 			Commands: []Command{
@@ -117,18 +117,18 @@ func (r *Repository) GetRequests() ([]Request, error) {
 					Fmt:         "rd, rs, imm",
 					RsNum:       1,
 					RdNum:       2,
-					CardImage:   "/static/img/and.jpg",
+					CardImage:   "http://127.0.0.1:9000/rvimg/and.jpg",
 					Description: "Число в rs складывается с imm, результат записывается в rd.",
 				},
 			},
 			NumParams: []int{1},
 		},
 	}
-	if len(requests) == 0 {
+	if len(programs) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}
 
-	return requests, nil
+	return programs, nil
 }
 
 func (r *Repository) GetCommand(id int) (Command, error) {

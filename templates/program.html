@@ -2,7 +2,7 @@
 <head>
     <title>Ассемблер RISC-V</title>
     <link rel="stylesheet" href="/static/styles/universal.css">
-    <link rel="stylesheet" href="/static/styles/request_style.css">
+    <link rel="stylesheet" href="/static/styles/program_style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
 
 <header>
         <div class="header_rectangle">
-          <a href="/commands"><img class="logo_image" src="/static/img/image.png" alt="logo"></a>
+          <a href="/commands"><img class="logo_image" src="http://127.0.0.1:9000/rvimg/logo.png" alt="logo"></a>
         </div>
 </header>
 
@@ -27,7 +27,7 @@
     <p class="column_name caption">Регистр-источник</p>
     <p class="column_name caption">Регистр для результата</p>
     <p class="column_name caption">Числовой операнд</p>
-    {{ range .requests }}
+    {{ range .programs }}
         <div id="card" class="card">
         <img src="{{ (index .Commands 0).CardImage}}" class="card_image cell">
         <p class="col_content_text cell">{{ (index .Commands 0).ComName}}</p>
