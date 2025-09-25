@@ -1,0 +1,270 @@
+.navigation
+{
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 1%;
+  margin-right: 1.5%;
+  margin-left: 1.5%;
+}
+
+.command_icon
+{
+    width: 40px;
+    height: 40px;
+}
+
+.item_count
+{
+    position: absolute;
+    width: 29px;
+    height: 29px;
+    left: 1406px;
+    top: 81px;
+}
+
+.pc_vector
+{
+    position: absolute;
+    left: 3.12%;
+    right: 3.12%;
+    top: 9.38%;
+    bottom: 9.38%;
+
+    background: #111918;
+}
+
+.amount_ellipse
+{
+    box-sizing: border-box;
+
+    height: 70%;
+    width: 70%;
+    border-radius: 50%;
+
+    margin-block: -30%;
+
+    background: #FFFFFF;
+    border: 2px solid #000000;
+}
+
+.amount_ellipse_text
+{
+    position: relative;
+    left: 50%;
+
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    justify-content: center;
+
+    color: #000000;
+}
+
+.searchbar
+{
+
+    width: 720px;
+    height: 40px;
+}
+
+.searchbar_rectangle
+{
+    box-sizing: border-box;
+
+    width: 658px;
+    height: 40px;
+
+    background: #FFFFFF;
+}
+
+.searchbar_text
+{
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16px;
+
+    color: #000;
+
+    outline: none;
+
+    height: 100%;
+    width: 80%;
+    padding: 0px 12px 0px 30px;
+    box-sizing: border-box;
+    outline: none;
+    border-radius: 5px;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.mag_glass
+{
+    background-image: url("data:image/svg+xml, %3Csvg width='19' height='19' viewBox='0 0 19 19' fill='none' xmlns='http://www.w3.org/2000/svg' class='mag_glass_vector'%3E%3Cpath d='M12.5048 12.5171L16.625 16.625M14.25 8.3125C14.25 11.5917 11.5917 14.25 8.3125 14.25C5.03331 14.25 2.375 11.5917 2.375 8.3125C2.375 5.03331 5.03331 2.375 8.3125 2.375C11.5917 2.375 14.25 5.03331 14.25 8.3125Z' stroke='%236B6E76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size: 13px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.card_group
+{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0px;
+    gap: 57px;
+
+    flex-wrap: wrap;
+
+    position: absolute;
+    width: 1014px;
+    left: calc(50% - 1014px/2 + 0.5px);
+    top: 140px;
+}
+
+.card 
+{
+    box-sizing: border-box;
+
+    /* Auto layout */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+
+    width: 300px;
+
+    background: #FFFFFF;
+    border: 1px solid #DDDEE1;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+}
+
+.card_image
+{
+    width: 300px;
+    height: 93.27px;
+
+    background: url(images.png);
+
+    /* Inside auto layout */
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
+}
+
+.rectange_and_text_group
+{
+    width: 300px;
+    height: 35px;
+
+
+    /* Inside auto layout */
+    flex: none;
+    align-self: stretch;
+    flex-grow: 0;
+}
+
+.rectangle
+{
+    box-sizing: border-box;
+    width: 300px;
+    height: 35px;
+
+    background: #F0F1F2;
+    border: 1px solid #DDDEE1;
+}
+
+.col_name_text
+{
+    width: 300px;
+    height: 35px;
+
+
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    justify-content: center;
+
+    color: #000000;
+}
+
+.col_content_text
+{
+    width: 300px;
+    height: 40px;
+    
+    padding: 0px;
+
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    justify-content: center;
+
+    color: #000000;
+
+    /* Inside auto layout */
+    flex: none;
+    align-self: stretch;
+    flex-grow: 0;
+}
+
+.btn 
+{
+    cursor: pointer;
+    background: rgb(0,50,98);
+    border: 1px solid #DDDEE1;
+    color: #fff;
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 18px;
+}
+
+.btn:hover
+{
+    background: rgb(51,91,129);    
+}
+
+.card_btn
+{
+    width: 100%;
+    height: 35px;
+
+
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    justify-content: center;
+
+    /* Inside auto layout */
+    flex: none;
+    align-self: stretch;
+    flex-grow: 0;
+}

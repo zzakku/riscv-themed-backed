@@ -1,0 +1,40 @@
+p {
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+body {
+    position: relative;
+    margin: 0px;
+    background: #FFFFFF;
+}
+
+.header_rectangle
+{
+    box-sizing: border-box;
+
+    /* position: absolute;
+    width: 1440px; */
+
+    width: 100%; 
+    height: 47.2px;
+    /* left: 0px;
+    top: 0px; */
+
+    background: #FFFFFF;
+    border-width: 1px 0px;
+    border-style: solid;
+    border-color: #DDDEDD;
+
+}
+
+.logo_image
+{
+    position: absolute;
+    width: 151px;
+    height: 24px;
+    left: 28px;
+    top: 12px;
+
+    background: url(atl.site);
+}
