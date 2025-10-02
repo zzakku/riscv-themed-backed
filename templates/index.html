@@ -26,12 +26,16 @@
     </div>
 
   <div class="command_icon">
-    <a href="/program">
+      {{ if ne .cart_count 0 }}
+        <a href="/program/{{ .programID }}">
+      {{ end }}
       <svg width="38" height="34" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M24 32H26.5V33.25H11.5V32H14L15.25 28.25H22.75L24 32ZM37.75 0.75V27H0.25V0.75H37.75ZM35.25 3.25H2.75V24.5H35.25V3.25ZM34 23.25H4V4.5H34V23.25ZM7.75 9.5H17.75V8.25H7.75V9.5ZM12.75 18.25H7.75V19.5H12.75V18.25ZM22.75 15.75H11.5V17H22.75V15.75ZM22.75 13.25H11.5V14.5H22.75V13.25ZM24 10.75H11.5V12H24V10.75Z" fill="#111918"/>
       </svg>
     </a>
-        <div class="amount_ellipse_text amount_ellipse">2</div>
+        {{ if ne .cart_count 0 }}
+          <div class="amount_ellipse_text amount_ellipse">{{ .cart_count}}</div>
+        {{ end }}
   </div>
 
 </div>
@@ -39,7 +43,7 @@
 <div id="card-container" class="card_group">
   {{ range .commands }}
     <div id="card" class="card">
-      <img src="{{ .CardImage }}" class="card_image">
+      <img src="{{ .Img }}" class="card_image">
       <p class="col_name_text rectangle">Название команды</p>
       <p class="col_content_text">{{ .ComName }}</p>
       <p class="col_name_text rectangle">Формат</p>
@@ -49,6 +53,13 @@
       <p class="col_name_text rectangle">№ регистра rd</p>
       <p class="col_content_text">{{ .RdNum }}</p>
       <a href="/command/{{ .ID }}" class="btn card_btn">Подробнее</a>
+      <form action="/add-to-program" method="POST">
+          <input type="hidden" name="command_id" value="{{ .ID }}">
+          <button type="submit" style="width: 160%;" class="btn card_btn">
+            Добавить в программу
+          </button>
+      </form>
+
     </div>
   {{end}}
 </div>

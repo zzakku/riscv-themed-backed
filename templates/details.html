@@ -16,17 +16,17 @@
 
 <div class="contents_container">
     <div id="card" class="card">
-      <img src=" {{.command.CardImage}} " class="card_image">
+      <img src=" {{ .Img }} " class="card_image">
       <p class="col_name_text rectangle">Название команды</p>
-      <p class="col_content_text">{{ .command.ComName }}</p>
+      <p class="col_content_text">{{ .ComName }}</p>
       <p class="col_name_text rectangle">Формат</p>
-      <p class="col_content_text">{{ .command.Fmt }}</p>
+      <p class="col_content_text">{{ .Fmt }}</p>
       <p class="col_name_text rectangle">№ регистра rs</p>
-      <p class="col_content_text">{{ .command.RsNum }}</p>
+      <p class="col_content_text">{{ .RsNum }}</p>
       <p class="col_name_text rectangle">№ регистра rd</p>
-      <p class="col_content_text">{{ .command.RdNum }}</p>
+      <p class="col_content_text">{{ .RdNum }}</p>
       <p class="col_name_text rectangle">Описание команды</p>
-      <p class="col_content_text">{{ .command.Description }}</p>
+      <p class="col_content_text">{{ .Description }}</p>
     </div>
 </div>
 

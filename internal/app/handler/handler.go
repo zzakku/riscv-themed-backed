@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"net/http"
 	"r-vBackend/internal/app/repository"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -19,58 +17,27 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetCommands(ctx *gin.Context) {
-	var commands []repository.Command
-	var err error
-
-	searchQuery := ctx.Query("searchQuery") // получаем значение из поля поиска
-	if searchQuery == "" {                  // если поле поиска пусто, то просто получаем из репозитория все записи
-		commands, err = h.Repository.GetCommands()
-		if err != nil {
-			logrus.Error(err)
-		}
-	} else {
-		commands, err = h.Repository.GetCommandsByName(searchQuery) // в ином случае ищем заказ по заголовку
-		if err != nil {
-			logrus.Error(err)
-		}
-	}
-
-	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"commands":    commands,
-		"searchQuery": searchQuery, // передаем введенный запрос обратно на страницу
-		// в ином случае оно будет очищаться при нажатии на кнопку
-	})
+// RegisterHandler Функция, в которой мы отдельно регистрируем маршруты, чтобы не писать все в одном месте
+func (h *Handler) RegisterHandler(router *gin.Engine) {
+	router.GET("/commands", h.GetAllCommands)
+	router.GET("/command/:id", h.GetCommandById)
+	router.GET("/program/:id", h.GetProgramWithCommands)
+	router.POST("/delete-command", h.DeleteCommand)
+	router.POST("/add-to-program", h.AddToProgram)
+	router.POST("/remove-program/:id", h.DeleteProgram)
 }
 
-func (h *Handler) GetCommand(ctx *gin.Context) {
-	idStr := ctx.Param("id") // получаем id заказа из урла (то есть из /command/:id)
-	// через двоеточие мы указываем параметры, которые потом сможем считать через функцию выше
-	id, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	command, err := h.Repository.GetCommand(id)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	ctx.HTML(http.StatusOK, "details.html", gin.H{
-		"command": command,
-	})
+// RegisterStatic То же самое, что и с маршрутами, регистрируем статику
+func (h *Handler) RegisterStatic(router *gin.Engine) {
+	router.LoadHTMLGlob("../../templates/*")
+	router.Static("/static", "../../resources")
 }
 
-func (h *Handler) GetProgram(ctx *gin.Context) {
-	var programs []repository.Program
-	var err error
-
-	programs, err = h.Repository.GetPrograms()
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	ctx.HTML(http.StatusOK, "program.html", gin.H{
-		"programs": programs,
+// errorHandler для более удобного вывода ошибок
+func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
+	logrus.Error(err.Error())
+	ctx.JSON(errorStatusCode, gin.H{
+		"status":      "error",
+		"description": err.Error(),
 	})
 }
