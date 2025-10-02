@@ -58,7 +58,7 @@ func (h *Handler) GetCommandById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.HTML(http.StatusOK, "details.html", command)
+	ctx.HTML(http.StatusOK, "command.html", command)
 }
 
 func (h *Handler) DeleteCommand(ctx *gin.Context) {
@@ -100,7 +100,7 @@ func (h *Handler) GetProgramById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.HTML(http.StatusOK, "details.html", command)
+	ctx.HTML(http.StatusOK, "command.html", command)
 }
 
 func (h *Handler) AddToProgram(ctx *gin.Context) {
