@@ -56,7 +56,7 @@ func (h *Handler) GetCommand(ctx *gin.Context) {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "details.html", gin.H{
+	ctx.HTML(http.StatusOK, "command.html", gin.H{
 		"command": command,
 	})
 }
