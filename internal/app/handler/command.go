@@ -135,11 +135,19 @@ func (h *Handler) GetProgramWithCommands(ctx *gin.Context) {
 	}
 
 	program, err := h.Repository.GetProgramByID(uint(prgId))
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		logrus.Error(err)
+		return
+	}
+
+	// если обращение к репозиторию удалось, но БД не нашла искомую программу - делаем редирект на главную страницу
+	// то же нужно для удалённых программ
+	if program == nil || program.Status == "удалена" {
+		ctx.Redirect(http.StatusFound, "/commands")
 		return
 	}
 
