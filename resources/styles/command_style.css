@@ -33,8 +33,6 @@
     width: 992px;
     height: 93.27px;
 
-    background: url(images.png);
-
     /* Inside auto layout */
     flex: none;
     align-self: stretch;

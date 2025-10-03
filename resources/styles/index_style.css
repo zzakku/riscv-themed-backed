@@ -156,8 +156,6 @@
     width: 300px;
     height: 93.27px;
 
-    background: url(images.png);
-
     /* Inside auto layout */
     flex: none;
     order: 0;
