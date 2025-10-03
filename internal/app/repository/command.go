@@ -154,8 +154,10 @@ func (r *Repository) GetProgramByID(prgID uint) (*ds.Program, error) {
 		&program.DateFinish,
 		&program.ModeratorID,
 		&program.CreatorID,
-		&program.InitX1,
-		&program.InitX2,
+		&program.InitT1,
+		&program.InitT2,
+		&program.ResT1,
+		&program.ResT2,
 	)
 
 	if err != nil {

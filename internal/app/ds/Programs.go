@@ -14,11 +14,12 @@ type Program struct {
 	CreatorID   uint         `gorm:"not null"`
 	ModeratorID uint
 
-	InitX1 int `gorm:"default:0"`
-	InitX2 int `gorm:"default:0"`
+	InitT1 int `gorm:"default:0"`
+	InitT2 int `gorm:"default:0"`
+
+	ResT1 int `gorm:"default:0"`
+	ResT2 int `gorm:"default:0"`
 
 	Creator   Users `gorm:"foreignKey:CreatorID"`
 	Moderator Users `gorm:"foreignKey:ModeratorID"`
-	//	Commands  []Command // Список команд
-	//	NumParams []int     // Список параметров для них
 }
