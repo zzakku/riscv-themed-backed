@@ -53,9 +53,9 @@
       <p class="col_name_text rectangle">№ регистра rd</p>
       <p class="col_content_text">{{ .RdNum }}</p>
       <a href="/command/{{ .ID }}" class="btn card_btn">Подробнее</a>
-      <form action="/add-to-program" method="POST">
+      <form action="/add-to-program" style="margin-bottom: 0px;" method="POST">
           <input type="hidden" name="command_id" value="{{ .ID }}">
-          <button type="submit" style="width: 160%;" class="btn card_btn">
+          <button type="submit" style="width: 160%;   text-decoration: underline;" class="btn card_btn">
             Добавить в программу
           </button>
       </form>
