@@ -25,6 +25,34 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/delete-command", h.DeleteCommand)
 	router.POST("/add-to-program", h.AddToProgram)
 	router.POST("/remove-program/:id", h.DeleteProgram)
+
+	api := router.Group("/api")
+	{
+		api.GET("/commands", h.GetAllCommandsAPI)
+		api.GET("/commands/:id", h.GetCommandByIdAPI)
+		api.POST("/commands/add", h.AddCommandAPI)
+		api.PUT("/commands/:id", h.ModifyCommandAPI)
+		api.DELETE("/commands/:id", h.DeleteCommandAPI)
+		api.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
+		api.POST("/commands/:id/add-image", h.AddCommandImageAPI) // не протестировано
+
+		api.GET("/programs/cart-icon", h.GetCartCountAPI)
+		api.GET("/programs", h.GetProgramsAPI)
+		api.GET("/programs/:id", h.GetProgramAPI)
+		api.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
+		api.PUT("/programs/:id/submit", h.SubmitProgramAPI)
+		api.PUT("/programs/:id/moderate", h.ExecuteOrRejectProgramAPI)
+		api.DELETE("/program/:id", h.DeleteProgramAPI)
+
+		api.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
+		api.PUT("/commands-programs", h.ModifyCommandOperandAPI)
+
+		api.POST("/users/register", h.RegisterUserAPI)
+		api.GET("/users/profile", h.GetUserAPI)
+		api.PUT("/users/profile", h.UpdateUserAPI)
+		api.POST("/users/log-in", h.AuthUserAPI)
+		api.POST("/users/log-out", h.DeauthUserAPI)
+	}
 }
 
 // RegisterStatic То же самое, что и с маршрутами, регистрируем статику

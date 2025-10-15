@@ -146,7 +146,7 @@ func (h *Handler) GetProgramWithCommands(ctx *gin.Context) {
 
 	// если обращение к репозиторию удалось, но БД не нашла искомую программу - делаем редирект на главную страницу
 	// то же нужно для удалённых программ
-	if program == nil || program.Status == "удалена" {
+	if program == (ds.Program{}) || program.Status == "удалена" {
 		ctx.Redirect(http.StatusFound, "/commands")
 		return
 	}

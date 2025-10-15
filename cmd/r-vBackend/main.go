@@ -19,10 +19,11 @@ func main() {
 		logrus.Fatalf("error loading config: %v", err)
 	}
 
-	postgresString := dsn.FromEnv()
+	postgresString := dsn.PostgresFromEnv()
 	fmt.Println(postgresString)
 
-	rep, errRep := repository.New(postgresString)
+	rep, errRep := repository.New(postgresString, dsn.MinioEndpointFromEnv(), dsn.MinioAccessKeyFromEnv(),
+		dsn.MinioSecretKeyFromEnv(), dsn.MinioBucketNameFromEnv())
 	if errRep != nil {
 		logrus.Fatalf("error initializing repository: %v", errRep)
 	}
