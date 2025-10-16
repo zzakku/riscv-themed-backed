@@ -3,10 +3,13 @@ package handler
 import (
 	"r-vBackend/cmd/r-vBackend/docs"
 	"r-vBackend/internal/app/repository"
+	"r-vBackend/internal/app/role"
+	"time"
 
 	//"r-vBackend/cmd/r-vBackend/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -15,11 +18,29 @@ import (
 
 type Handler struct {
 	Repository *repository.Repository
+
+	JWT JWTConfig
+}
+
+type JWTConfig struct {
+	Token          string
+	ExpirationTime time.Duration
+	SigningMethod  jwt.SigningMethod
 }
 
 func NewHandler(r *repository.Repository) *Handler {
+	expiration, err := time.ParseDuration("24h")
+	if err != nil {
+		expiration = 24 * time.Hour // если всё плохо
+	}
+
 	return &Handler{
 		Repository: r,
+		JWT: JWTConfig{
+			Token:          "test",
+			ExpirationTime: expiration,
+			SigningMethod:  jwt.SigningMethodHS256,
+		},
 	}
 }
 
@@ -33,25 +54,31 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/remove-program/:id", h.DeleteProgram)
 
 	api := router.Group("/api")
+
+	creator := api.Group("")
+	moderator := api.Group("")
+
+	creator.Use(h.WithAuthCheck(role.Creator))
+	moderator.Use(h.WithAuthCheck(role.Moderator))
 	{
 		api.GET("/commands", h.GetAllCommandsAPI)
 		api.GET("/commands/:id", h.GetCommandByIdAPI)
-		api.POST("/commands/add", h.AddCommandAPI)
-		api.PUT("/commands/:id", h.ModifyCommandAPI)
-		api.DELETE("/commands/:id", h.DeleteCommandAPI)
-		api.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
-		api.POST("/commands/:id/add-image", h.AddCommandImageAPI)
+		moderator.POST("/commands/add", h.AddCommandAPI)
+		moderator.PUT("/commands/:id", h.ModifyCommandAPI)
+		moderator.DELETE("/commands/:id", h.DeleteCommandAPI)
+		creator.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
+		moderator.POST("/commands/:id/add-image", h.AddCommandImageAPI)
 
-		api.GET("/programs/cart-icon", h.GetCartCountAPI)
-		api.GET("/programs", h.GetProgramsAPI)
-		api.GET("/programs/:id", h.GetProgramAPI)
-		api.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
-		api.PUT("/programs/:id/submit", h.SubmitProgramAPI)
-		api.PUT("/programs/:id/moderate", h.ExecuteOrRejectProgramAPI)
-		api.DELETE("/program/:id", h.DeleteProgramAPI)
+		creator.GET("/programs/cart-icon", h.GetCartCountAPI)
+		creator.GET("/programs", h.GetProgramsAPI)
+		creator.GET("/programs/:id", h.GetProgramAPI)
+		creator.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
+		creator.PUT("/programs/:id/submit", h.SubmitProgramAPI)
+		moderator.PUT("/programs/:id/moderate", h.ExecuteOrRejectProgramAPI)
+		creator.DELETE("/program/:id", h.DeleteProgramAPI)
 
-		api.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
-		api.PUT("/commands-programs", h.ModifyCommandOperandAPI)
+		creator.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
+		creator.PUT("/commands-programs", h.ModifyCommandOperandAPI)
 
 		api.POST("/users/register", h.RegisterUserAPI)
 		api.GET("/users/profile", h.GetUserAPI)

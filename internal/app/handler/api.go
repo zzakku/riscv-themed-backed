@@ -7,12 +7,23 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"r-vBackend/internal/app/ds"
+	"r-vBackend/internal/app/role"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 )
+
+// Структуры данных
+
+type loginResp struct {
+	ExpiresIn   time.Duration `json:"expires_in"`
+	AccessToken string        `json:"access_token"`
+	TokenType   string        `json:"token_type"`
+}
 
 // Домен услуги
 
@@ -946,10 +957,32 @@ func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"data":    user,
-		"message": "аутентификация выполнена",
+	token := jwt.NewWithClaims(h.JWT.SigningMethod, &JWTClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(h.JWT.ExpirationTime).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "r-vapp",
+		},
+		UserID: user.ID,
+		Scopes: []string{}, // test data
+		Role:   role.Creator,
+	})
+
+	if token == nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("пустой токен"))
+		return
+	}
+
+	strToken, err := token.SignedString([]byte(h.JWT.Token))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("не удалось создать строку токена"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, loginResp{
+		ExpiresIn:   h.JWT.ExpirationTime,
+		AccessToken: strToken,
+		TokenType:   "Bearer",
 	})
 }
 

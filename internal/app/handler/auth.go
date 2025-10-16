@@ -1,4 +1,4 @@
-package pkg
+package handler
 
 import (
 	"log"
@@ -14,14 +14,14 @@ import (
 
 type JWTClaims struct {
 	jwt.StandardClaims          // все что точно необходимо по RFC
-	UserUUID           uint     `json:"user_id"` // наши данные - uuid этого пользователя в базе данных
+	UserID             uint     `json:"user_id"` // наши данные - uuid этого пользователя в базе данных
 	Scopes             []string `json:"scopes"`  // список доступов в нашей системе
 	Role               role.Role
 }
 
 const jwtPrefix = "Bearer "
 
-func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Context) {
+func (h *Handler) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Context) {
 	return func(gCtx *gin.Context) {
 		jwtStr := gCtx.GetHeader("Authorization")
 		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
@@ -34,7 +34,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Co
 		jwtStr = jwtStr[len(jwtPrefix):]
 
 		token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(a.Config.JWT.Token), nil
+			return []byte(h.JWT.Token), nil
 		})
 		if err != nil {
 			gCtx.AbortWithStatus(http.StatusForbidden)
@@ -45,15 +45,20 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Co
 
 		myClaims := token.Claims.(*JWTClaims)
 
+		roleAllowed := false
 		for _, oneOfAssignedRole := range assignedRoles {
 			if myClaims.Role == oneOfAssignedRole {
-				gCtx.AbortWithStatus(http.StatusForbidden)
-				log.Printf("role %s is not assigned in %s", myClaims.Role, assignedRoles)
-
-				return
+				roleAllowed = true
+				break
 			}
 		}
 
+		if !roleAllowed {
+			gCtx.AbortWithStatus(http.StatusForbidden)
+			log.Printf("role %s is not assigned in %s", myClaims.Role, assignedRoles)
+
+			return
+		}
 	}
 
 }
