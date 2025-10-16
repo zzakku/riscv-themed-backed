@@ -16,6 +16,14 @@ import (
 
 // Домен услуги
 
+// GetAllCommandsAPI godoc
+// @Summary      Получить все команды
+// @Description  получить все неудалённые команды
+// @Tags         commands
+// @Produce      json
+// @Success      200  {object}  map[string]any
+// @Failure      500  {object}  []ds.Users
+// @Router       /programs/ [get]
 func (h *Handler) GetAllCommandsAPI(ctx *gin.Context) {
 	var commands []ds.Command
 	var err error

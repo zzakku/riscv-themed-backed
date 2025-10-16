@@ -1,10 +1,16 @@
 package handler
 
 import (
+	"r-vBackend/cmd/r-vBackend/docs"
 	"r-vBackend/internal/app/repository"
+
+	//"r-vBackend/cmd/r-vBackend/docs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 type Handler struct {
@@ -34,7 +40,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		api.PUT("/commands/:id", h.ModifyCommandAPI)
 		api.DELETE("/commands/:id", h.DeleteCommandAPI)
 		api.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
-		api.POST("/commands/:id/add-image", h.AddCommandImageAPI) // не протестировано
+		api.POST("/commands/:id/add-image", h.AddCommandImageAPI)
 
 		api.GET("/programs/cart-icon", h.GetCartCountAPI)
 		api.GET("/programs", h.GetProgramsAPI)
@@ -53,6 +59,13 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		api.POST("/users/log-in", h.AuthUserAPI)
 		api.POST("/users/log-out", h.DeauthUserAPI)
 	}
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/docs/doc.json")))
+	router.GET("/docs/doc.json", func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Content-Type", "application/json")
+		ctx.Writer.WriteHeader(200)
+		ctx.Writer.Write([]byte(docs.SwaggerInfo.ReadDoc()))
+	})
 }
 
 // RegisterStatic То же самое, что и с маршрутами, регистрируем статику

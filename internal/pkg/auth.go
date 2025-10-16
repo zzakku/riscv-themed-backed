@@ -1,0 +1,59 @@
+package pkg
+
+import (
+	"log"
+	"net/http"
+
+	//	"r-vBackend/internal/app/ds"
+	"r-vBackend/internal/app/role"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
+)
+
+type JWTClaims struct {
+	jwt.StandardClaims          // все что точно необходимо по RFC
+	UserUUID           uint     `json:"user_id"` // наши данные - uuid этого пользователя в базе данных
+	Scopes             []string `json:"scopes"`  // список доступов в нашей системе
+	Role               role.Role
+}
+
+const jwtPrefix = "Bearer "
+
+func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Context) {
+	return func(gCtx *gin.Context) {
+		jwtStr := gCtx.GetHeader("Authorization")
+		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
+			gCtx.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
+
+			return // завершаем обработку
+		}
+
+		// отрезаем префикс
+		jwtStr = jwtStr[len(jwtPrefix):]
+
+		token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(a.Config.JWT.Token), nil
+		})
+		if err != nil {
+			gCtx.AbortWithStatus(http.StatusForbidden)
+			log.Println(err)
+
+			return
+		}
+
+		myClaims := token.Claims.(*JWTClaims)
+
+		for _, oneOfAssignedRole := range assignedRoles {
+			if myClaims.Role == oneOfAssignedRole {
+				gCtx.AbortWithStatus(http.StatusForbidden)
+				log.Printf("role %s is not assigned in %s", myClaims.Role, assignedRoles)
+
+				return
+			}
+		}
+
+	}
+
+}

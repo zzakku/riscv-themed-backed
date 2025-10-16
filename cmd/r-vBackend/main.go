@@ -12,6 +12,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @title RVBACK
+// @version 1.0
+// @description Risc-V-themed Web-Service
+
+// @contact.name API Support
+// @contact.url https://github.com/zzakku
+// @contact.email nuhuh@lol.com
+
+// @license.name AS IS (NO WARRANTY)
+
+// @host 127.0.0.1
+// @schemes https http
+// @BasePath /
+
 func main() {
 	router := gin.Default()
 	conf, err := config.NewConfig()

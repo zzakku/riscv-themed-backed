@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
@@ -11,6 +12,13 @@ import (
 type Config struct {
 	ServiceHost string
 	ServicePort int
+
+	JWT JWTConfig
+}
+
+type JWTConfig struct {
+	Token          string
+	ExpirationTime time.Duration
 }
 
 func NewConfig() (*Config, error) {

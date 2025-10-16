@@ -1,0 +1,47 @@
+basePath: /
+definitions:
+  ds.Users:
+    properties:
+      id:
+        type: integer
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+    type: object
+host: 127.0.0.1
+info:
+  contact:
+    email: nuhuh@lol.com
+    name: API Support
+    url: https://github.com/zzakku
+  description: Risc-V-themed Web-Service
+  license:
+    name: AS IS (NO WARRANTY)
+  title: RVBACK
+  version: "1.0"
+paths:
+  /programs/:
+    get:
+      description: получить все неудалённые команды
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            items:
+              $ref: '#/definitions/ds.Users'
+            type: array
+      summary: Получить все команды
+      tags:
+      - commands
+schemes:
+- https
+- http
+swagger: "2.0"
