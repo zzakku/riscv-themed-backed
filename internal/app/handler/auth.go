@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -37,17 +35,17 @@ func (h *Handler) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Contex
 		jwtStr = jwtStr[len(jwtPrefix):]
 
 		// проверяем jwt в блеклист редиса
-		_, err := h.Repository.RedisClient.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
-		if err == nil { // значит что токен в блеклисте
+		b, err := h.Repository.RedisClient.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
+		if err == nil && b { // значит что токен в блеклисте
 			gCtx.AbortWithStatus(http.StatusForbidden)
 
 			return
 		}
-		if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
-			gCtx.AbortWithError(http.StatusInternalServerError, err)
+		// if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
+		// 	gCtx.AbortWithError(http.StatusInternalServerError, err)
 
-			return
-		}
+		// 	return
+		// }
 
 		token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(h.JWT.Token), nil

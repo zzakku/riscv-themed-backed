@@ -58,6 +58,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		api.GET("/commands", h.GetAllCommandsAPI)
 		api.GET("/commands/:id", h.GetCommandByIdAPI)
 
+		api.GET("/programs/cart-icon", h.GetProgramCartCountAPI)
+
 		api.POST("/users/register", h.RegisterUserAPI)
 
 		api.POST("/users/log-in", h.AuthUserAPI)
@@ -70,7 +72,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 			either.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
 			either.PUT("/programs/:id/submit", h.SubmitProgramAPI)
 
-			either.GET("/programs/cart-icon", h.GetProgramCartCountAPI)
 			either.DELETE("/programs/", h.DeleteProgramAPI)
 			either.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
 			either.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)

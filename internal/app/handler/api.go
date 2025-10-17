@@ -462,12 +462,12 @@ func isImage(contentType string) bool {
 func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 	userID, err := h.getUserIDFromJWT(ctx)
 
-	if err != nil && err != fmt.Errorf("jwt не имеет нужный префикс") {
+	if err != nil && err.Error() != "jwt не имеет нужный префикс" {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	if err == fmt.Errorf("jwt не имеет нужный префикс") && userID == 0 {
+	if err.Error() == "jwt не имеет нужный префикс" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "success",
 			"prg_id": 0,
