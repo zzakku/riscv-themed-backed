@@ -11,8 +11,8 @@ type Program struct {
 	DateCreate  time.Time `gorm:"not null"`
 	DateUpdate  time.Time
 	DateFinish  sql.NullTime `gorm:"default:null"`
-	CreatorID   uint         `gorm:"not null"`
-	ModeratorID uint
+	CreatorID   *uint        `gorm:"not null"`
+	ModeratorID *uint
 
 	InitT1 *int64 `gorm:"default:null"`
 	InitT2 *int64 `gorm:"default:null"`

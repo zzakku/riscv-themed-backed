@@ -1,15 +1,162 @@
 basePath: /
 definitions:
-  ds.Users:
+  ds.Command:
     properties:
+      com_name:
+        type: string
+      description:
+        type: string
+      fmt:
+        type: string
       id:
         type: integer
-      is_moderator:
+      img:
+        type: string
+      is_delete:
         type: boolean
+      rd_num:
+        type: integer
+      rs_num:
+        type: integer
+    type: object
+  handler.authRequest:
+    properties:
       login:
         type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
     type: object
-host: 127.0.0.1
+  handler.commandWithOperand:
+    properties:
+      command:
+        $ref: '#/definitions/ds.Command'
+      operand:
+        type: integer
+    type: object
+  handler.errorResponse:
+    properties:
+      description:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.loginResp:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
+  handler.moderatedProgramResp:
+    properties:
+      commands_with_operands:
+        items:
+          $ref: '#/definitions/handler.commandWithOperand'
+        type: array
+      message:
+        type: string
+      program:
+        $ref: '#/definitions/handler.programResp'
+      status:
+        type: string
+    type: object
+  handler.moderatorDecisionReq:
+    properties:
+      is_accepted:
+        type: boolean
+    required:
+    - is_accepted
+    type: object
+  handler.modifyProgramFieldsReq:
+    properties:
+      init_t1:
+        type: integer
+      init_t2:
+        type: integer
+    type: object
+  handler.operandReq:
+    properties:
+      operand:
+        type: integer
+    required:
+    - operand
+    type: object
+  handler.programCmdsResp:
+    properties:
+      commands_with_operands:
+        items:
+          $ref: '#/definitions/handler.commandWithOperand'
+        type: array
+      program:
+        $ref: '#/definitions/handler.programResp'
+    type: object
+  handler.programResp:
+    properties:
+      creator_login:
+        type: string
+      date_create:
+        type: string
+      date_finish:
+        type: string
+      date_update:
+        type: string
+      id:
+        type: integer
+      init_t1:
+        type: integer
+      init_t2:
+        type: integer
+      moderator_login:
+        type: string
+      res_t1:
+        type: integer
+      res_t2:
+        type: integer
+      status:
+        type: string
+    type: object
+  handler.registerRequest:
+    properties:
+      login:
+        maxLength: 25
+        minLength: 3
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  handler.successMessageResp:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.successResponse:
+    properties:
+      data:
+        type: object
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.userPutReq:
+    properties:
+      login:
+        type: string
+      passwrod:
+        type: string
+    type: object
+host: localhost:8081
 info:
   contact:
     email: nuhuh@lol.com
@@ -21,27 +168,550 @@ info:
   title: RVBACK
   version: "1.0"
 paths:
-  /programs/:
-    get:
-      description: получить все неудалённые команды
+  /api/command/{id}:
+    put:
+      description: Обновить данные неудалённой команды. Доступно модератору.
+      parameters:
+      - description: id команды
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновлённая команда
+        in: body
+        name: updated_command
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Command'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.successResponse'
         "500":
           description: Internal Server Error
           schema:
-            items:
-              $ref: '#/definitions/ds.Users'
-            type: array
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Обновить команду
+      tags:
+      - commands
+  /api/commands:
+    get:
+      description: Получить все неудалённые команды. Доступно любому пользователю.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
       summary: Получить все команды
       tags:
       - commands
+  /api/commands-programs:
+    delete:
+      description: Удаляет команду из программы-черновика. Доступно авторизованному
+        пользователю.
+      parameters:
+      - description: Удаляемая команда
+        in: query
+        name: command_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить команду из программы
+      tags:
+      - commands-programs
+    put:
+      description: Изменяет операнд команды в программе-черновике текущего пользователя.
+        Доступно авторизованному пользователю.
+      parameters:
+      - description: Команда, чей операнд мы меняем
+        in: query
+        name: command_id
+        required: true
+        type: integer
+      - description: Новое значение операнда
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.operandReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Изменить операнд команды в программе
+      tags:
+      - commands-programs
+  /api/commands/:
+    post:
+      description: Добавить команду без изображения. Доступно модератору.
+      parameters:
+      - description: Добавляемая команда
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Command'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Добавить команду
+      tags:
+      - commands
+  /api/commands/{id}:
+    delete:
+      description: Удаляет команду и ассоциированное изображение в Minio. Доступно
+        модератору.
+      parameters:
+      - description: id команды
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Удалить команду
+      tags:
+      - commands
+    get:
+      description: Получить данные одной команды по её ID. Доступно любому пользователю.
+      parameters:
+      - description: id команды
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Получить команду по ID
+      tags:
+      - commands
+  /api/commands/{id}/add-image:
+    get:
+      description: Добавить изображение к команде, сохранив его в Minio. Доступно
+        модератору.
+      parameters:
+      - description: id команды
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Файл изображения
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Добавить изображение
+      tags:
+      - commands
+  /api/commands/{id}/add-to-program:
+    post:
+      description: Позволяет добавить команду в текущую программу-черновик. Доступно
+        авторизованным пользователям.
+      parameters:
+      - description: id команды
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Добавить команду в программу
+      tags:
+      - commands
+  /api/programs:
+    delete:
+      description: Удаляет программу-черновик текущего пользователя. Заявка определяется
+        автоматически по ID пользователя.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаляет текущую программу-черновик
+      tags:
+      - programs
+    get:
+      description: Получить список неудалённых программ. Модератор может получить
+        все, оператор - только свои.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.programCmdsResp'
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Получить список програм
+      tags:
+      - programs
+  /api/programs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Получить одну программу. Модератор может получить любую, создатель
+        - только свои.
+      parameters:
+      - description: id программы
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.programCmdsResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Получить одну программу
+      tags:
+      - programs
+    put:
+      consumes:
+      - application/json
+      description: Изменяет дополнительные поля программы. Доступно авторизованному
+        пользователю.
+      parameters:
+      - description: id программы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Модифицируемые поля по теме. Можно опустить то, которое мы не
+          будем менять.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.modifyProgramFieldsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.programCmdsResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Изменить поля программы
+      tags:
+      - programs
+  /api/programs/{id}/moderate:
+    put:
+      consumes:
+      - application/json
+      description: Исполняет или отклоняет программу, проставляет в описание программы
+        id принявшего решение модератора, вычисляет конечные поля программы. Доступно
+        модератору.
+      parameters:
+      - description: id программы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Решение модератора
+        in: body
+        name: isAccepted
+        required: true
+        schema:
+          $ref: '#/definitions/handler.moderatorDecisionReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.moderatedProgramResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Завершить программу
+      tags:
+      - programs
+  /api/programs/{id}/submit:
+    put:
+      consumes:
+      - application/json
+      description: Завершить черновик заявки-программы и отправить на модерацию. Доступно
+        авторизованному пользователю.
+      parameters:
+      - description: id программы
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Сформировать программу
+      tags:
+      - programs
+  /api/programs/cart-icon:
+    get:
+      description: Получает ID текущей программы-черновика и количество команд в ней.
+        Доступно всем, для госта всегда возвращается 0, 0
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.programCmdsResp'
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Получить иконку корзины
+      tags:
+      - programs
+  /api/users:
+    get:
+      description: Предоставляет текущему пользователю свои данные. Доступно авторизованным
+        пользователям.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              status:
+                type: string
+              user:
+                type: object
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение данных пользователя
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные пользователя. Доступно авторизованным пользователям.
+      parameters:
+      - description: Обновлённые данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.userPutReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление данных в личном кабинете
+      tags:
+      - users
+  /api/users/log-in:
+    post:
+      consumes:
+      - application/json
+      description: Выдача зарегистрированному пользователю JWT-токена
+      parameters:
+      - description: Введённые пользователем данные
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.loginResp'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Аутентификация юзера
+      tags:
+      - users
+  /api/users/log-out:
+    post:
+      description: Добавляет JWT-токен в черный список.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя
+      tags:
+      - users
+  /api/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт в базе данных нового пользователя с указанными данными,
+        если логин уникальный и данные пользователя соответствуют требованиям
+      parameters:
+      - description: Введённые пользователем данные
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - users
 schemes:
-- https
 - http
 swagger: "2.0"

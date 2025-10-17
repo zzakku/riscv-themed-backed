@@ -15,40 +15,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// АКТУАЛЬНО ТОЛЬКО ДЛЯ ТРЕТЬЕЙ ЛАБОРАТОРНОЙ
-
-// Singleton для фиксации СОЗДАТЕЛЯ во всех методах где он требуется
-
-// package usingleton
-
-// import "r-vBackend/internal/app/ds"
-
-// // АКТУАЛЬНО ТОЛЬКО ДЛЯ ТРЕТЬЕЙ ЛАБОРАТОРНОЙ
-
-// type usingle struct {
-// 	O interface{}
-// }
-
-// var instantiated *usingle = nil
-
-// func New() *usingle {
-// 	if instantiated == nil {
-// 		instantiated = new(single)
-// 	}
-// 	return instantiated
-// }
-
-// func (r *Repository) GetProgramCreator() ds.Users {
-// 	creator := ds.Users{
-// 		ID:          1,
-// 		Login:       "oleg",
-// 		Password:    "1234",
-// 		IsModerator: true,
-// 	}
-
-// 	return creator
-// }
-
 func (r *Repository) GetAllCommands() ([]ds.Command, error) {
 	// тут мы пользуемся ORM
 	var commands []ds.Command
@@ -379,12 +345,15 @@ func (r *Repository) GetProgramByID(prgID uint) (ds.Program, error) {
 	// Ловим м-м и компонуем в массив
 }
 
-// GetCartCount для получения количества услуг в заявке
-func (r *Repository) GetCartCount() int64 {
+// для получения количества команд в программе
+func (r *Repository) GetProgramCartCount(creatorID uint) int64 {
+
+	if creatorID == 0 {
+		return 0
+	}
+
 	var programID uint
 	var count int64
-	creatorID := 2
-	// пока что мы захардкодили id создателя заявки, в последующем будем получать его из JWT
 
 	err := r.db.Model(&ds.Program{}).Where("creator_id = ? AND status = ?", creatorID, "черновик").Select("id").First(&programID).Error
 	if err != nil {
@@ -399,11 +368,21 @@ func (r *Repository) GetCartCount() int64 {
 	return count
 }
 
-func (r *Repository) GetPrograms(status string, date_start string, date_end string) ([]ds.Program, error) {
+func (r *Repository) GetPrograms(status string, date_start string, date_end string, userID uint) ([]ds.Program, error) {
+
+	user, err := r.GetUser(userID)
+
+	if err != nil {
+		return nil, fmt.Errorf("не удалось найти пользователя")
+	}
 
 	var prgs []ds.Program
 
 	query := r.db.Where("status != ? AND status != ?", "удалена", "черновик")
+
+	if !user.IsModerator {
+		query = query.Where("creator_id = ?", userID)
+	}
 
 	// Фильтр по статусу
 	if status != "" {
@@ -430,46 +409,25 @@ func (r *Repository) GetPrograms(status string, date_start string, date_end stri
 		}
 	}
 
-	err := query.Preload("Creator").Preload("Moderator").Find(&prgs).Error
+	err = query.Preload("Creator").Preload("Moderator").Find(&prgs).Error
 	if err != nil {
 		return nil, fmt.Errorf("ошибка получения заявок: %w", err)
 	}
 
 	return prgs, nil
-
-	// type ProgramsWithLogins struct {
-	// 	Id uint64
-	// 	Status      string
-	// 	DateCreate  time.Time
-	// 	DateUpdate  time.Time
-	// 	DateFinish  sql.NullTime
-	// 	CreatorLogin   string
-	// 	ModeratorLogin string
-
-	// 	InitT1 int
-	// 	InitT2 int
-
-	// 	ResT1 int
-	// 	ResT2 int
-	// }
-
-	// prglogs, err := gorm.G[[]ProgramsWithLogins](r.db).Raw("SELECT p.id, p.status, p.date_create, p.date_update, p.date_finish, u1.login AS creator_login, u2.login AS moderator_login, init_t1, init_t2, res_t1, res_t2 FROM programs p JOIN users u1 ON p.creator_id = u1.id JOIN users u2 ON p.moderator_id = u2.id")
 }
 
-func (r *Repository) AddToProgram(cmdID uint) error {
-	creatorID := 2   // пока что хардкод
-	moderatorID := 1 // пока что хардкод
+func (r *Repository) AddToProgram(cmdID uint, creatorID uint) error {
 	var programID uint
 
-	cmd_count := r.GetCartCount()
+	cmd_count := r.GetProgramCartCount(creatorID)
 
 	if cmd_count == 0 {
 		program := ds.Program{
-			Status:      "черновик",
-			DateCreate:  time.Now(),
-			DateUpdate:  time.Now(),
-			CreatorID:   uint(creatorID),
-			ModeratorID: uint(moderatorID),
+			Status:     "черновик",
+			DateCreate: time.Now(),
+			DateUpdate: time.Now(),
+			CreatorID:  &creatorID,
 		}
 		err := r.db.Create(&program).Error
 		if err != nil {
@@ -495,13 +453,13 @@ func (r *Repository) AddToProgram(cmdID uint) error {
 	return nil
 }
 
-func (r *Repository) ModifyProgramFields(programID uint, init_t1 *int64, init_t2 *int64) error {
+func (r *Repository) ModifyProgramFields(programID uint, creatorID uint, init_t1 *int64, init_t2 *int64) error {
 	var old_prg ds.Program
 
-	err := r.db.Model(&ds.Program{}).Where("id = ? AND status != 'удалена'", programID).First(&old_prg).Error
+	err := r.db.Model(&ds.Program{}).Where("id = ? AND creator_id = ? AND status = 'черновик'", programID, creatorID).First(&old_prg).Error
 
 	if err != nil {
-		return fmt.Errorf("не удалось найти программу с id %d либо она удалена: %w", programID, err)
+		return fmt.Errorf("не удалось найти программу с id %d либо запрещено изменение её полей: %w", programID, err)
 	}
 
 	to_update := map[string]interface{}{
@@ -654,7 +612,7 @@ func (r *Repository) DeleteProgram(programID uint) error {
 		"status":      "удалена",
 	}
 
-	err := r.db.Model(&ds.Program{}).Where("id = ?", programID).Updates(to_update).Error
+	err := r.db.Model(&ds.Program{}).Where("id = ? AND status = 'черновик'", programID).Updates(to_update).Error
 
 	if err != nil {
 		return err

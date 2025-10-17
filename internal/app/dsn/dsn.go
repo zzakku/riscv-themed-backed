@@ -3,6 +3,8 @@ package dsn
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 )
 
 func PostgresFromEnv() string {
@@ -40,4 +42,57 @@ func MinioBucketNameFromEnv() string {
 	bucket_name := os.Getenv("MINIO_BUCKET_NAME")
 
 	return bucket_name
+}
+
+func RedisHostFromEnv() string {
+	redis_host := os.Getenv("REDIS_HOST")
+
+	return redis_host
+}
+
+func RedisPortFromEnv() (int, error) {
+	redis_port := os.Getenv("REDIS_PORT")
+
+	parsed_port, err := strconv.Atoi(redis_port)
+	if err != nil {
+		return 0, err
+	}
+
+	return parsed_port, nil
+}
+
+func RedisPasswordFromEnv() string {
+	redis_password := os.Getenv("REDIS_PASSWORD")
+
+	return redis_password
+}
+
+func RedisUserFromEnv() string {
+	redis_user := os.Getenv("REDIS_USER")
+
+	return redis_user
+}
+
+func RedisDialTimeoutFromEnv() (time.Duration, error) {
+	redis_dial_timeout := os.Getenv("REDIS_DIAL_TIMEOUT")
+
+	parsed_timeout, err := time.ParseDuration(redis_dial_timeout)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return parsed_timeout, err
+}
+
+func RedisReadTimeoutFromEnv() (time.Duration, error) {
+	redis_read_timeout := os.Getenv("REDIS_READ_TIMEOUT")
+
+	parsed_timeout, err := time.ParseDuration(redis_read_timeout)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return parsed_timeout, err
 }

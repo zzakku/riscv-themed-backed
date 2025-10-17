@@ -54,37 +54,44 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/remove-program/:id", h.DeleteProgram)
 
 	api := router.Group("/api")
-
-	creator := api.Group("")
-	moderator := api.Group("")
-
-	creator.Use(h.WithAuthCheck(role.Creator))
-	moderator.Use(h.WithAuthCheck(role.Moderator))
 	{
 		api.GET("/commands", h.GetAllCommandsAPI)
 		api.GET("/commands/:id", h.GetCommandByIdAPI)
-		moderator.POST("/commands/add", h.AddCommandAPI)
-		moderator.PUT("/commands/:id", h.ModifyCommandAPI)
-		moderator.DELETE("/commands/:id", h.DeleteCommandAPI)
-		creator.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
-		moderator.POST("/commands/:id/add-image", h.AddCommandImageAPI)
-
-		creator.GET("/programs/cart-icon", h.GetCartCountAPI)
-		creator.GET("/programs", h.GetProgramsAPI)
-		creator.GET("/programs/:id", h.GetProgramAPI)
-		creator.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
-		creator.PUT("/programs/:id/submit", h.SubmitProgramAPI)
-		moderator.PUT("/programs/:id/moderate", h.ExecuteOrRejectProgramAPI)
-		creator.DELETE("/program/:id", h.DeleteProgramAPI)
-
-		creator.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
-		creator.PUT("/commands-programs", h.ModifyCommandOperandAPI)
 
 		api.POST("/users/register", h.RegisterUserAPI)
-		api.GET("/users/profile", h.GetUserAPI)
-		api.PUT("/users/profile", h.UpdateUserAPI)
+
 		api.POST("/users/log-in", h.AuthUserAPI)
-		api.POST("/users/log-out", h.DeauthUserAPI)
+
+		either := api.Group("")
+		either.Use(h.WithAuthCheck(role.Moderator, role.Creator))
+		{
+			either.GET("/programs", h.GetProgramsAPI)
+			either.GET("/programs/:id", h.GetProgramAPI)
+			either.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
+			either.PUT("/programs/:id/submit", h.SubmitProgramAPI)
+
+			either.GET("/programs/cart-icon", h.GetProgramCartCountAPI)
+			either.DELETE("/programs/", h.DeleteProgramAPI)
+			either.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
+			either.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
+			either.PUT("/commands-programs", h.ModifyCommandOperandAPI)
+
+			either.GET("/users/profile", h.GetUserAPI)
+			either.PUT("/users/profile", h.UpdateUserAPI)
+
+			either.POST("/users/log-out", h.DeauthUserAPI)
+		}
+
+		moderator := api.Group("")
+		moderator.Use(h.WithAuthCheck(role.Moderator))
+		{
+			moderator.POST("/commands/add", h.AddCommandAPI)
+			moderator.PUT("/commands/:id", h.ModifyCommandAPI)
+			moderator.DELETE("/commands/:id", h.DeleteCommandAPI)
+			moderator.POST("/commands/:id/add-image", h.AddCommandImageAPI)
+
+			moderator.PUT("/programs/:id/moderate", h.ExecuteOrRejectProgramAPI)
+		}
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/docs/doc.json")))

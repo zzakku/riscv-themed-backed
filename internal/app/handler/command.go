@@ -32,7 +32,7 @@ func (h *Handler) GetAllCommands(ctx *gin.Context) {
 
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"commands":    commands,
-		"cart_count":  h.Repository.GetCartCount(),
+		"cart_count":  h.Repository.GetProgramCartCount(1),
 		"searchQuery": search,
 		"programID":   h.Repository.GetProgramIDByCreatorID(uint(1)), // пока что хардкод
 	})
@@ -112,8 +112,8 @@ func (h *Handler) AddToProgram(ctx *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	// Вызов функции добавления чата в заявку
-	err = h.Repository.AddToProgram(uint(id))
+	// Вызов функции добавления команды в программу
+	err = h.Repository.AddToProgram(uint(id), 1) // TO-DO: этот код скорее всего больше не нужен, здешний вызов функции закрыт заплаткой
 	if err != nil && !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 		return
 	}

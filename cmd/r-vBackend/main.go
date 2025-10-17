@@ -12,19 +12,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// @title RVBACK
-// @version 1.0
-// @description Risc-V-themed Web-Service
+//	@title			RVBACK
+//	@version		1.0
+//	@description	Risc-V-themed Web-Service
 
-// @contact.name API Support
-// @contact.url https://github.com/zzakku
-// @contact.email nuhuh@lol.com
+//	@contact.name	API Support
+//	@contact.url	https://github.com/zzakku
+//	@contact.email	nuhuh@lol.com
 
-// @license.name AS IS (NO WARRANTY)
+//	@license.name	AS IS (NO WARRANTY)
 
-// @host 127.0.0.1
-// @schemes https http
-// @BasePath /
+//	@host		localhost:8081
+//	@schemes	http
+//	@BasePath	/
 
 func main() {
 	router := gin.Default()
@@ -36,8 +36,35 @@ func main() {
 	postgresString := dsn.PostgresFromEnv()
 	fmt.Println(postgresString)
 
+	rdPort, err := dsn.RedisPortFromEnv()
+
+	if err != nil {
+		logrus.Fatalf("error parsing redis port: %v", err)
+	}
+
+	rdDT, err := dsn.RedisDialTimeoutFromEnv()
+
+	if err != nil {
+		logrus.Fatalf("error parsing redis dial timeout: %v", err)
+	}
+
+	rdRT, err := dsn.RedisReadTimeoutFromEnv()
+
+	if err != nil {
+		logrus.Fatalf("error parsing redis read timeout: %v", err)
+	}
+
+	rdCfg := repository.RedisConfig{
+		RedisHost:        dsn.RedisHostFromEnv(),
+		RedisPort:        rdPort,
+		RedisPassword:    dsn.RedisPasswordFromEnv(),
+		RedisUser:        dsn.RedisUserFromEnv(),
+		RedisDialTimeout: rdDT,
+		RedisReadTimeout: rdRT,
+	}
+
 	rep, errRep := repository.New(postgresString, dsn.MinioEndpointFromEnv(), dsn.MinioAccessKeyFromEnv(),
-		dsn.MinioSecretKeyFromEnv(), dsn.MinioBucketNameFromEnv())
+		dsn.MinioSecretKeyFromEnv(), dsn.MinioBucketNameFromEnv(), rdCfg)
 	if errRep != nil {
 		logrus.Fatalf("error initializing repository: %v", errRep)
 	}

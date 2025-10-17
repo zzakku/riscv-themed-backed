@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -61,4 +62,30 @@ func (h *Handler) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Contex
 		}
 	}
 
+}
+
+func (h *Handler) getUserIDFromJWT(ctx *gin.Context) (uint, error) {
+	jwtStr := ctx.GetHeader("Authorization")
+	if !strings.HasPrefix(jwtStr, jwtPrefix) {
+		ctx.AbortWithStatus(http.StatusForbidden)
+
+		return 0, fmt.Errorf("jwt не имеет нужный префикс")
+	}
+
+	// отрезаем префикс
+	jwtStr = jwtStr[len(jwtPrefix):]
+
+	token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(h.JWT.Token), nil
+	})
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusForbidden)
+		log.Println(err)
+
+		return 0, err // не удалось распарсить JWT
+	}
+
+	myClaims := token.Claims.(*JWTClaims)
+
+	return myClaims.UserID, nil
 }

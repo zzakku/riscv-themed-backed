@@ -1,6 +1,5 @@
 {
     "schemes": [
-        "https",
         "http"
     ],
     "swagger": "2.0",
@@ -17,12 +16,56 @@
         },
         "version": "1.0"
     },
-    "host": "127.0.0.1",
+    "host": "localhost:8081",
     "basePath": "/",
     "paths": {
-        "/programs/": {
+        "/api/command/{id}": {
+            "put": {
+                "description": "Обновить данные неудалённой команды. Доступно модератору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Обновить команду",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id команды",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Обновлённая команда",
+                        "name": "updated_command",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.Command"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands": {
             "get": {
-                "description": "получить все неудалённые команды",
+                "description": "Получить все неудалённые команды. Доступно любому пользователю.",
                 "produces": [
                     "application/json"
                 ],
@@ -34,17 +77,757 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handler.successResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ds.Users"
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands-programs": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Изменяет операнд команды в программе-черновике текущего пользователя. Доступно авторизованному пользователю.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands-programs"
+                ],
+                "summary": "Изменить операнд команды в программе",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Команда, чей операнд мы меняем",
+                        "name": "command_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Новое значение операнда",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.operandReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successMessageResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет команду из программы-черновика. Доступно авторизованному пользователю.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands-programs"
+                ],
+                "summary": "Удалить команду из программы",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Удаляемая команда",
+                        "name": "command_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successMessageResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands/": {
+            "post": {
+                "description": "Добавить команду без изображения. Доступно модератору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Добавить команду",
+                "parameters": [
+                    {
+                        "description": "Добавляемая команда",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.Command"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands/{id}": {
+            "get": {
+                "description": "Получить данные одной команды по её ID. Доступно любому пользователю.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Получить команду по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id команды",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаляет команду и ассоциированное изображение в Minio. Доступно модератору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Удалить команду",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id команды",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands/{id}/add-image": {
+            "get": {
+                "description": "Добавить изображение к команде, сохранив его в Minio. Доступно модератору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Добавить изображение",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id команды",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Файл изображения",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/commands/{id}/add-to-program": {
+            "post": {
+                "description": "Позволяет добавить команду в текущую программу-черновик. Доступно авторизованным пользователям.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Добавить команду в программу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id команды",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/programs": {
+            "get": {
+                "description": "Получить список неудалённых программ. Модератор может получить все, оператор - только свои.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Получить список програм",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.programCmdsResp"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет программу-черновик текущего пользователя. Заявка определяется автоматически по ID пользователя.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Удаляет текущую программу-черновик",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successMessageResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/programs/cart-icon": {
+            "get": {
+                "description": "Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для госта всегда возвращается 0, 0",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Получить иконку корзины",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.programCmdsResp"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/programs/{id}": {
+            "get": {
+                "description": "Получить одну программу. Модератор может получить любую, создатель - только свои.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Получить одну программу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id программы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.programCmdsResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Изменяет дополнительные поля программы. Доступно авторизованному пользователю.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Изменить поля программы",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id программы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Модифицируемые поля по теме. Можно опустить то, которое мы не будем менять.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.modifyProgramFieldsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.programCmdsResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/programs/{id}/moderate": {
+            "put": {
+                "description": "Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение модератора, вычисляет конечные поля программы. Доступно модератору.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Завершить программу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id программы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Решение модератора",
+                        "name": "isAccepted",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.moderatorDecisionReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.moderatedProgramResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/programs/{id}/submit": {
+            "put": {
+                "description": "Завершить черновик заявки-программы и отправить на модерацию. Доступно авторизованному пользователю.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "programs"
+                ],
+                "summary": "Сформировать программу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id программы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successMessageResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Предоставляет текущему пользователю свои данные. Доступно авторизованным пользователям.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Получение данных пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "object"
+                                }
                             }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет данные пользователя. Доступно авторизованным пользователям.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Обновление данных в личном кабинете",
+                "parameters": [
+                    {
+                        "description": "Обновлённые данные",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.userPutReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/log-in": {
+            "post": {
+                "description": "Выдача зарегистрированному пользователю JWT-токена",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Аутентификация юзера",
+                "parameters": [
+                    {
+                        "description": "Введённые пользователем данные",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.loginResp"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/log-out": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавляет JWT-токен в черный список.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Выход пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successMessageResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/register": {
+            "post": {
+                "description": "Создаёт в базе данных нового пользователя с указанными данными, если логин уникальный и данные пользователя соответствуют требованиям",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "Введённые пользователем данные",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.registerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
                         }
                     }
                 }
@@ -52,16 +835,241 @@
         }
     },
     "definitions": {
-        "ds.Users": {
+        "ds.Command": {
             "type": "object",
             "properties": {
+                "com_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fmt": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "is_moderator": {
+                "img": {
+                    "type": "string"
+                },
+                "is_delete": {
                     "type": "boolean"
                 },
+                "rd_num": {
+                    "type": "integer"
+                },
+                "rs_num": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.authRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
                 "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.commandWithOperand": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "$ref": "#/definitions/ds.Command"
+                },
+                "operand": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.errorResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.loginResp": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.moderatedProgramResp": {
+            "type": "object",
+            "properties": {
+                "commands_with_operands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.commandWithOperand"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "program": {
+                    "$ref": "#/definitions/handler.programResp"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.moderatorDecisionReq": {
+            "type": "object",
+            "required": [
+                "is_accepted"
+            ],
+            "properties": {
+                "is_accepted": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handler.modifyProgramFieldsReq": {
+            "type": "object",
+            "properties": {
+                "init_t1": {
+                    "type": "integer"
+                },
+                "init_t2": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.operandReq": {
+            "type": "object",
+            "required": [
+                "operand"
+            ],
+            "properties": {
+                "operand": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.programCmdsResp": {
+            "type": "object",
+            "properties": {
+                "commands_with_operands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.commandWithOperand"
+                    }
+                },
+                "program": {
+                    "$ref": "#/definitions/handler.programResp"
+                }
+            }
+        },
+        "handler.programResp": {
+            "type": "object",
+            "properties": {
+                "creator_login": {
+                    "type": "string"
+                },
+                "date_create": {
+                    "type": "string"
+                },
+                "date_finish": {
+                    "type": "string"
+                },
+                "date_update": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "init_t1": {
+                    "type": "integer"
+                },
+                "init_t2": {
+                    "type": "integer"
+                },
+                "moderator_login": {
+                    "type": "string"
+                },
+                "res_t1": {
+                    "type": "integer"
+                },
+                "res_t2": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.registerRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 3
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                }
+            }
+        },
+        "handler.successMessageResp": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.successResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.userPutReq": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "passwrod": {
                     "type": "string"
                 }
             }

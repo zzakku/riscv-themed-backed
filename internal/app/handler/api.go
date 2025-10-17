@@ -19,22 +19,98 @@ import (
 
 // Структуры данных
 
+type registerRequest struct {
+	Login    string `json:"login" binding:"required,min=3,max=25"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type authRequest struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 type loginResp struct {
-	ExpiresIn   time.Duration `json:"expires_in"`
+	ExpiresIn   time.Duration `json:"expires_in" swaggertype:"integer"`
 	AccessToken string        `json:"access_token"`
 	TokenType   string        `json:"token_type"`
+}
+
+type successResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Data    any    `json:"data" swaggertype:"object"`
+}
+
+type successMessageResp struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type errorResponse struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+}
+
+type programResp struct {
+	ID             uint   `json:"id"`
+	Status         string `json:"status"`
+	DateCreate     string `json:"date_create"`
+	DateUpdate     string `json:"date_update"`
+	DateFinish     string `json:"date_finish"`
+	CreatorLogin   string `json:"creator_login"`
+	ModeratorLogin string `json:"moderator_login"`
+	InitT1         *int64 `json:"init_t1"`
+	InitT2         *int64 `json:"init_t2"`
+	ResT1          *int64 `json:"res_t1"`
+	ResT2          *int64 `json:"res_t2"`
+}
+
+type commandWithOperand struct {
+	Command ds.Command
+	Operand int
+}
+
+type programCmdsResp struct {
+	Program     programResp          `json:"program"`
+	CmdsWithOps []commandWithOperand `json:"commands_with_operands"`
+}
+
+type modifyProgramFieldsReq struct {
+	InitT1 *int64 `json:"init_t1"`
+	InitT2 *int64 `json:"init_t2"`
+}
+
+type moderatorDecisionReq struct {
+	IsAccepted *bool `json:"is_accepted" binding:"required"`
+}
+
+type moderatedProgramResp struct {
+	Status      string               `json:"status"`
+	Message     string               `json:"message"`
+	Program     programResp          `json:"program"`
+	CmdsWithOps []commandWithOperand `json:"commands_with_operands"`
+}
+
+type operandReq struct {
+	Operand int64 `json:"operand" binding:"required"`
+}
+
+type userPutReq struct {
+	Login    *string `json:"login,omitempty"`
+	Password *string `json:"passwrod,omitempty"`
 }
 
 // Домен услуги
 
 // GetAllCommandsAPI godoc
-// @Summary      Получить все команды
-// @Description  получить все неудалённые команды
-// @Tags         commands
-// @Produce      json
-// @Success      200  {object}  map[string]any
-// @Failure      500  {object}  []ds.Users
-// @Router       /programs/ [get]
+//
+//	@Summary		Получить все команды
+//	@Description	Получить все неудалённые команды. Доступно любому пользователю.
+//	@Tags			commands
+//	@Produce		json
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/commands [get]
 func (h *Handler) GetAllCommandsAPI(ctx *gin.Context) {
 	var commands []ds.Command
 	var err error
@@ -51,12 +127,25 @@ func (h *Handler) GetAllCommandsAPI(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   commands,
+	ctx.JSON(http.StatusOK, successResponse{
+		Status:  "success",
+		Message: "команды получены",
+		Data:    commands,
 	})
 }
 
+// GetCommandByIdAPI godoc
+//
+//	@Summary		Получить команду по ID
+//	@Description	Получить данные одной команды по её ID. Доступно любому пользователю.
+//	@Tags			commands
+//	@Produce		json
+//
+// @Param id path int true "id команды"
+//
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/commands/{id} [get]
 func (h *Handler) GetCommandByIdAPI(ctx *gin.Context) {
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
@@ -77,6 +166,18 @@ func (h *Handler) GetCommandByIdAPI(ctx *gin.Context) {
 	})
 }
 
+// AddCommandAPI godoc
+//
+//	@Summary		Добавить команду
+//	@Description	Добавить команду без изображения. Доступно модератору.
+//	@Tags			commands
+//	@Produce		json
+//
+// @Param request body ds.Command true "Добавляемая команда"
+//
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/commands/ [post]
 func (h *Handler) AddCommandAPI(ctx *gin.Context) {
 	var command ds.Command
 	if err := ctx.BindJSON(&command); err != nil {
@@ -100,6 +201,19 @@ func (h *Handler) AddCommandAPI(ctx *gin.Context) {
 
 // Обновить ряд полей команды (нельзя обновить картинку и ID) - API
 
+// ModifyCommandAPI godoc
+//
+//	@Summary		Обновить команду
+//	@Description	Обновить данные неудалённой команды. Доступно модератору.
+//	@Tags			commands
+//
+// @Param id path int true "id команды"
+// @Param updated_command body ds.Command true "Обновлённая команда"
+//
+//	@Produce		json
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/command/{id} [put]
 func (h *Handler) ModifyCommandAPI(ctx *gin.Context) {
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
@@ -136,6 +250,18 @@ func (h *Handler) ModifyCommandAPI(ctx *gin.Context) {
 
 // Удаление команды. Удаление изображения встроено сюда
 
+// DeleteCommandAPI godoc
+//
+//	@Summary		Удалить команду
+//	@Description	Удаляет команду и ассоциированное изображение в Minio. Доступно модератору.
+//	@Tags			commands
+//	@Produce		json
+//
+// @Param id path int true "id команды"
+//
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/commands/{id} [delete]
 func (h *Handler) DeleteCommandAPI(ctx *gin.Context) {
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
@@ -156,7 +282,29 @@ func (h *Handler) DeleteCommandAPI(ctx *gin.Context) {
 	})
 }
 
+// AddCommandToProgramAPI godoc
+//
+//	@Summary		Добавить команду в программу
+//	@Description	Позволяет добавить команду в текущую программу-черновик. Доступно авторизованным пользователям.
+//	@Tags			commands
+//	@Produce		json
+//
+// @Param id path int true "id команды"
+//
+//	@Success		200	{object}	successResponse
+//	@Failure		500	{object}	errorResponse
+//
+// @Failure 400
+//
+//	@Router			/api/commands/{id}/add-to-program [post]
 func (h *Handler) AddCommandToProgramAPI(ctx *gin.Context) {
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
@@ -166,7 +314,7 @@ func (h *Handler) AddCommandToProgramAPI(ctx *gin.Context) {
 	}
 
 	// Вызов функции добавления чата в заявку
-	err = h.Repository.AddToProgram(uint(id))
+	err = h.Repository.AddToProgram(uint(id), userID)
 	if err != nil && !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -178,6 +326,22 @@ func (h *Handler) AddCommandToProgramAPI(ctx *gin.Context) {
 	})
 }
 
+// AddCommandImageAPI godoc
+//
+//	@Summary		Добавить изображение
+//	@Description    Добавить изображение к команде, сохранив его в Minio. Доступно модератору.
+//	@Tags			commands
+//	@Produce		json
+//
+// @Param id path int true "id команды"
+// @Param image formData file true "Файл изображения"
+//
+//	@Success		200	{object}	successResponse
+//
+// @Failure 400 {object} errorResponse
+//
+//	@Failure		500	{object}	errorResponse
+//	@Router			/api/commands/{id}/add-image [get]
 func (h *Handler) AddCommandImageAPI(ctx *gin.Context) {
 
 	strId := ctx.Param("id")
@@ -283,14 +447,42 @@ func isImage(contentType string) bool {
 
 // Получение иконки корзины
 
-func (h *Handler) GetCartCountAPI(ctx *gin.Context) {
-	count := h.Repository.GetCartCount()
-	draft_id := h.Repository.GetProgramIDByCreatorID(2)
+// GetProgramCartCountAPI godoc
+//
+//	@Summary		Получить иконку корзины
+//	@Description	Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для госта всегда возвращается 0, 0
+//	@Tags			programs
+//	@Produce		json
+//	@Success		200		{object} programCmdsResp
+//	@Failure		500		{object}	errorResponse
+//
+// @Failure 403
+//
+//	@Router			/api/programs/cart-icon [get]
+func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil && err != fmt.Errorf("jwt не имеет нужный префикс") {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err == fmt.Errorf("jwt не имеет нужный префикс") && userID == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"prg_id": 0,
+			"count":  0,
+		})
+		return
+	}
+
+	count := h.Repository.GetProgramCartCount(userID)
+	prg_id := h.Repository.GetProgramIDByCreatorID(userID)
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status":   "success",
-		"draft_id": draft_id,
-		"count":    count,
+		"status": "success",
+		"prg_id": prg_id,
+		"count":  count,
 	})
 }
 
@@ -298,7 +490,26 @@ func (h *Handler) GetCartCountAPI(ctx *gin.Context) {
 //  (поля программы, НО вместо id создателя/модератора - их логины, статус - исключить черновик и удалённые),
 //  с фильтрацией по диапазону даты формирования и статусу
 
+// GetProgramsAPI godoc
+//
+//	@Summary		Получить список програм
+//	@Description	Получить список неудалённых программ. Модератор может получить все, оператор - только свои.
+//	@Tags			programs
+//	@Produce		json
+//	@Success		200		{object} programCmdsResp
+//	@Failure		500		{object}	errorResponse
+//
+// @Failure 403
+//
+//	@Router			/api/programs [get]
 func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	// Запрос без JSON по шаблону ниже не сработает
 
@@ -317,30 +528,16 @@ func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
 
 	var prgs []ds.Program
 
-	prgs, err := h.Repository.GetPrograms(filter.Status, filter.StartDate, filter.EndDate)
+	prgs, err = h.Repository.GetPrograms(filter.Status, filter.StartDate, filter.EndDate, userID)
 
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("ошибка обработки запроса"))
 		return
 	}
 
-	type ProgramResp struct {
-		ID             uint   `json:"id"`
-		Status         string `json:"status"`
-		DateCreate     string `json:"date_create"`
-		DateUpdate     string `json:"date_update"`
-		DateFinish     string `json:"date_finish"`
-		CreatorLogin   string `json:"creator_login"`
-		ModeratorLogin string `json:"moderator_login"`
-		InitT1         *int64 `json:"init_t1"`
-		InitT2         *int64 `json:"init_t2"`
-		ResT1          *int64 `json:"res_t1"`
-		ResT2          *int64 `json:"res_t2"`
-	}
-
-	response := make([]ProgramResp, len(prgs))
+	response := make([]programResp, len(prgs))
 	for i, prg := range prgs {
-		response[i] = ProgramResp{
+		response[i] = programResp{
 			ID:           prg.ID,
 			Status:       prg.Status,
 			DateCreate:   prg.DateCreate.Format("02.01.2006"),
@@ -371,6 +568,17 @@ func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
 
 // GET одна запись (поля `заявки` + ее `услуги`). При получении `заявки` возвращется список ее услуг с картинками
 
+// GetProgramAPI godoc
+//
+//	@Summary		Получить одну программу
+//	@Description	Получить одну программу. Модератор может получить любую, создатель - только свои.
+//	@Tags			programs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id программы"
+//	@Success		200		{object} programCmdsResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/programs/{id} [get]
 func (h *Handler) GetProgramAPI(ctx *gin.Context) {
 
 	// Структура ответа:
@@ -402,33 +610,14 @@ func (h *Handler) GetProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	type CommandWithOperand struct {
-		Command ds.Command
-		Operand int
-	}
-
-	res_arr := make([]CommandWithOperand, len(commands))
+	res_arr := make([]commandWithOperand, len(commands))
 
 	for i := range len(commands) {
 		res_arr[i].Command = commands[i]
 		res_arr[i].Operand = operands[i]
 	}
 
-	type ProgramResp struct {
-		ID             uint   `json:"id"`
-		Status         string `json:"status"`
-		DateCreate     string `json:"date_create"`
-		DateUpdate     string `json:"date_update"`
-		DateFinish     string `json:"date_finish"`
-		CreatorLogin   string `json:"creator_login"`
-		ModeratorLogin string `json:"moderator_login"`
-		InitT1         *int64 `json:"init_t1"`
-		InitT2         *int64 `json:"init_t2"`
-		ResT1          *int64 `json:"res_t1"`
-		ResT2          *int64 `json:"res_t2"`
-	}
-
-	response := ProgramResp{
+	response := programResp{
 		ID:           prg.ID,
 		Status:       prg.Status,
 		DateCreate:   prg.DateCreate.Format("02.01.2006"),
@@ -450,38 +639,53 @@ func (h *Handler) GetProgramAPI(ctx *gin.Context) {
 		response.ModeratorLogin = prg.Moderator.Login
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"program":                response,
-		"commands_with_operands": res_arr,
+	ctx.JSON(http.StatusOK, programCmdsResp{
+		Program:     response,
+		CmdsWithOps: res_arr,
 	})
 
 }
 
 // PUT изменения полей заявки по теме
 
+// ModifyProgramFieldsAPI godoc
+//
+//	@Summary		Изменить поля программы
+//	@Description	Изменяет дополнительные поля программы. Доступно авторизованному пользователю.
+//	@Tags			programs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id программы"
+//
+// @Param request body modifyProgramFieldsReq true "Модифицируемые поля по теме. Можно опустить то, которое мы не будем менять."
+//
+//	@Success		200		{object} programCmdsResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/programs/{id} [put]
 func (h *Handler) ModifyProgramFieldsAPI(ctx *gin.Context) {
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
 	}
 
-	type ModifyProgramFieldsReq struct {
-		InitT1 *int64 `json:"init_t1"`
-		InitT2 *int64 `json:"init_t2"`
-	}
-
-	var req ModifyProgramFieldsReq
+	var req modifyProgramFieldsReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	err = h.Repository.ModifyProgramFields(uint(id), req.InitT1, req.InitT2)
+	err = h.Repository.ModifyProgramFields(uint(id), userID, req.InitT1, req.InitT2)
 
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -503,33 +707,14 @@ func (h *Handler) ModifyProgramFieldsAPI(ctx *gin.Context) {
 		return
 	}
 
-	type CommandWithOperand struct {
-		Command ds.Command
-		Operand int
-	}
-
-	res_arr := make([]CommandWithOperand, len(commands))
+	res_arr := make([]commandWithOperand, len(commands))
 
 	for i := range len(commands) {
 		res_arr[i].Command = commands[i]
 		res_arr[i].Operand = operands[i]
 	}
 
-	type ProgramResp struct {
-		ID             uint   `json:"id"`
-		Status         string `json:"status"`
-		DateCreate     string `json:"date_create"`
-		DateUpdate     string `json:"date_update"`
-		DateFinish     string `json:"date_finish"`
-		CreatorLogin   string `json:"creator_login"`
-		ModeratorLogin string `json:"moderator_login"`
-		InitT1         *int64 `json:"init_t1"`
-		InitT2         *int64 `json:"init_t2"`
-		ResT1          *int64 `json:"res_t1"`
-		ResT2          *int64 `json:"res_t2"`
-	}
-
-	response := ProgramResp{
+	response := programResp{
 		ID:           prg.ID,
 		Status:       prg.Status,
 		DateCreate:   prg.DateCreate.Format("02.01.2006"),
@@ -552,15 +737,24 @@ func (h *Handler) ModifyProgramFieldsAPI(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status":   "success",
 		"program":  response,
 		"commands": res_arr,
-		"message":  "поля успешно изменены",
 	})
 }
 
 // PUT сформировать создателем (дата формирования). Происходит проверка на обязательные поля
 
+// SubmitProgramAPI godoc
+//
+//	@Summary		Сформировать программу
+//	@Description	Завершить черновик заявки-программы и отправить на модерацию. Доступно авторизованному пользователю.
+//	@Tags			programs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id программы"
+//	@Success		200		{object} successMessageResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/programs/{id}/submit [put]
 func (h *Handler) SubmitProgramAPI(ctx *gin.Context) {
 	strId := ctx.Param("id")
 	id, err := strconv.Atoi(strId)
@@ -576,75 +770,9 @@ func (h *Handler) SubmitProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	var prg ds.Program
-
-	prg, err = h.Repository.GetProgramByID(uint(id))
-
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	commands, operands, err := h.Repository.GetCommandsWithOperands(uint(id))
-
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	type CommandWithOperand struct {
-		Command ds.Command
-		Operand int
-	}
-
-	res_arr := make([]CommandWithOperand, len(commands))
-
-	for i := range len(commands) {
-		res_arr[i].Command = commands[i]
-		res_arr[i].Operand = operands[i]
-	}
-
-	type ProgramResp struct {
-		ID             uint   `json:"id"`
-		Status         string `json:"status"`
-		DateCreate     string `json:"date_create"`
-		DateUpdate     string `json:"date_update"`
-		DateFinish     string `json:"date_finish"`
-		CreatorLogin   string `json:"creator_login"`
-		ModeratorLogin string `json:"moderator_login"`
-		InitT1         *int64 `json:"init_t1"`
-		InitT2         *int64 `json:"init_t2"`
-		ResT1          *int64 `json:"res_t1"`
-		ResT2          *int64 `json:"res_t2"`
-	}
-
-	response := ProgramResp{
-		ID:           prg.ID,
-		Status:       prg.Status,
-		DateCreate:   prg.DateCreate.Format("02.01.2006"),
-		DateUpdate:   prg.DateUpdate.Format("02.01.2006"),
-		CreatorLogin: prg.Creator.Login,
-		InitT1:       prg.InitT1,
-		InitT2:       prg.InitT2,
-		ResT1:        prg.ResT1,
-		ResT2:        prg.ResT2,
-	}
-
-	// null распарсить нельзя, если в дате окончания null, то на выходе имеем пустую строку
-	if prg.DateFinish.Valid {
-		response.DateFinish = prg.DateFinish.Time.Format("02.01.2006")
-	}
-
-	// id 0 не с чем сопоставить, поэтому логин дёргаем только если id != 0
-	if prg.Moderator.ID != 0 {
-		response.ModeratorLogin = prg.Moderator.Login
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":                 "success",
-		"program":                response,
-		"commands_with_operands": res_arr,
-		"message":                "формирование программы завершено",
+	ctx.JSON(http.StatusOK, successMessageResp{
+		Status:  "success",
+		Message: "формирование программы завершено",
 	})
 
 }
@@ -653,7 +781,20 @@ func (h *Handler) SubmitProgramAPI(ctx *gin.Context) {
 // Одно из доп. полей `заявки` или `м-м` рассчитывается (реализовать формулу представленную в лаб-2) при завершении заявки
 // (вычисление стоимости заказа, даты доставки в течении месяца, вычисления в м-м).
 
+// ExecuteOrRejectProgramAPI godoc
+//
+//	@Summary		Завершить программу
+//	@Description	Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение модератора, вычисляет конечные поля программы. Доступно модератору.
+//	@Tags			programs
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id программы"
+//	@Param			isAccepted	body		moderatorDecisionReq	true	"Решение модератора"
+//	@Success		200		{object} moderatedProgramResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/programs/{id}/moderate [put]
 func (h *Handler) ExecuteOrRejectProgramAPI(ctx *gin.Context) {
+
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -661,16 +802,19 @@ func (h *Handler) ExecuteOrRejectProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	var input struct {
-		IsAccepted *bool `json:"is_accepted" binding:"required"`
-	}
+	var input moderatorDecisionReq
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	moderatorID := uint(2)
+	moderatorID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	err = h.Repository.ExecuteOrRejectProgram(uint(id), moderatorID, *input.IsAccepted)
 
@@ -700,33 +844,14 @@ func (h *Handler) ExecuteOrRejectProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	type CommandWithOperand struct {
-		Command ds.Command
-		Operand int
-	}
-
-	res_arr := make([]CommandWithOperand, len(commands))
+	res_arr := make([]commandWithOperand, len(commands))
 
 	for i := range len(commands) {
 		res_arr[i].Command = commands[i]
 		res_arr[i].Operand = operands[i]
 	}
 
-	type ProgramResp struct {
-		ID             uint   `json:"id"`
-		Status         string `json:"status"`
-		DateCreate     string `json:"date_create"`
-		DateUpdate     string `json:"date_update"`
-		DateFinish     string `json:"date_finish"`
-		CreatorLogin   string `json:"creator_login"`
-		ModeratorLogin string `json:"moderator_login"`
-		InitT1         *int64 `json:"init_t1"`
-		InitT2         *int64 `json:"init_t2"`
-		ResT1          *int64 `json:"res_t1"`
-		ResT2          *int64 `json:"res_t2"`
-	}
-
-	response := ProgramResp{
+	response := programResp{
 		ID:           prg.ID,
 		Status:       prg.Status,
 		DateCreate:   prg.DateCreate.Format("02.01.2006"),
@@ -748,25 +873,37 @@ func (h *Handler) ExecuteOrRejectProgramAPI(ctx *gin.Context) {
 		response.ModeratorLogin = prg.Moderator.Login
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":                 "success",
-		"program":                response,
-		"commands_with_operands": res_arr,
-		"message":                message,
+	ctx.JSON(http.StatusOK, moderatedProgramResp{
+		Status:      "success",
+		Program:     response,
+		CmdsWithOps: res_arr,
+		Message:     message,
 	})
 }
 
 // DELETE удаление (дата формирования)
 
+// DeleteProgramAPI godoc
+// @Summary Удаляет текущую программу-черновик
+// @Description Удаляет программу-черновик текущего пользователя. Заявка определяется автоматически по ID пользователя.
+// @Tags programs
+// @Security BearerAuth
+// @Produce json
+// @Success		200		{object} successMessageResp
+// @Failure		500		{object}	errorResponse
+// @Router /api/programs [delete]
 func (h *Handler) DeleteProgramAPI(ctx *gin.Context) {
-	strId := ctx.Param("id")
-	id, err := strconv.Atoi(strId)
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	err = h.Repository.DeleteProgram(uint(id))
+	programID := h.Repository.GetProgramIDByCreatorID(userID)
+
+	err = h.Repository.DeleteProgram(uint(programID))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -781,7 +918,29 @@ func (h *Handler) DeleteProgramAPI(ctx *gin.Context) {
 // Домен м-м
 // DELETE удаление из заявки (без `PK м-м`)
 
+// DeleteCommandFromProgramAPI godoc
+//
+//	@Summary		Удалить команду из программы
+//	@Description	Удаляет команду из программы-черновика. Доступно авторизованному пользователю.
+//	@Tags			commands-programs
+//
+// @Security BearerAuth
+//
+//	@Produce		json
+//
+// @Param command_id query int true "Удаляемая команда"
+//
+//	@Success		200		{object} successMessageResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/commands-programs [delete]
 func (h *Handler) DeleteCommandFromProgramAPI(ctx *gin.Context) {
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	strId := ctx.Query("command_id")
 	id, err := strconv.Atoi(strId)
@@ -790,7 +949,7 @@ func (h *Handler) DeleteCommandFromProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	programID := h.Repository.GetProgramIDByCreatorID(2)
+	programID := h.Repository.GetProgramIDByCreatorID(userID)
 
 	err = h.Repository.DeleteCommandFromProgram(uint(programID), uint(id))
 	if err != nil {
@@ -798,15 +957,38 @@ func (h *Handler) DeleteCommandFromProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "удаление команды прошло успешно",
+	ctx.JSON(http.StatusOK, successMessageResp{
+		Status:  "success",
+		Message: "удаление команды прошло успешно",
 	})
 }
 
 // PUT изменение количества/порядка/значения в м-м (`без PK м-м`)
 
+// ModifyCommandOperandAPI godoc
+//
+//	@Summary		Изменить операнд команды в программе
+//	@Description	Изменяет операнд команды в программе-черновике текущего пользователя. Доступно авторизованному пользователю.
+//	@Tags			commands-programs
+//
+// @Security BearerAuth
+//
+//	@Produce		json
+//
+// @Param command_id query int true "Команда, чей операнд мы меняем"
+// @Param request body operandReq true "Новое значение операнда"
+//
+//	@Success		200		{object} successMessageResp
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/commands-programs [put]
 func (h *Handler) ModifyCommandOperandAPI(ctx *gin.Context) {
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	strId := ctx.Query("command_id")
 	id, err := strconv.ParseUint(strId, 10, 32)
@@ -815,15 +997,9 @@ func (h *Handler) ModifyCommandOperandAPI(ctx *gin.Context) {
 		return
 	}
 
-	programID := h.Repository.GetProgramIDByCreatorID(2)
+	programID := h.Repository.GetProgramIDByCreatorID(userID)
 
-	// Запрос без JSON по шаблону ниже не сработает
-
-	type operand_req struct {
-		Operand int64 `json:"operand"`
-	}
-
-	var newVal operand_req
+	var newVal operandReq
 
 	if err := ctx.ShouldBindJSON(&newVal); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -848,14 +1024,20 @@ func (h *Handler) ModifyCommandOperandAPI(ctx *gin.Context) {
 // Домен пользователь
 // POST регистрация
 
+// RegisterUserAPI godoc
+//
+//	@Summary		Регистрация пользователя
+//	@Description	Создаёт в базе данных нового пользователя с указанными данными, если логин уникальный и данные пользователя соответствуют требованиям
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		registerRequest	true	"Введённые пользователем данные"
+//	@Success		200		{object}	successResponse
+//	@Failure		500		{object}	errorResponse
+//	@Router			/api/users/register [post]
 func (h *Handler) RegisterUserAPI(ctx *gin.Context) {
 
-	type RegisterRequest struct {
-		Login    string `json:"login" binding:"required,min=3,max=25"`
-		Password string `json:"password" binding:"required,min=6"`
-	}
-
-	var req RegisterRequest
+	var req registerRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -882,8 +1064,24 @@ func (h *Handler) RegisterUserAPI(ctx *gin.Context) {
 
 // GET полей пользователя после аутентификации (для личного кабинета)
 
+// GetUserAPI godoc
+// @Summary Получение данных пользователя
+// @Description Предоставляет текущему пользователю свои данные. Доступно авторизованным пользователям.
+// @Tags users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} object{status=string,user=object}
+// @Failure 404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Router /api/users [get]
 func (h *Handler) GetUserAPI(ctx *gin.Context) {
-	userID := uint(1) // Фиксированный ID пользователя
+
+	userID, err := h.getUserIDFromJWT(ctx)
+
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
 
 	user, err := h.Repository.GetUser(userID)
 
@@ -900,14 +1098,28 @@ func (h *Handler) GetUserAPI(ctx *gin.Context) {
 
 // PUT пользователя (личный кабинет)
 
+// UpdateUserAPI godoc
+// @Summary Обновление данных в личном кабинете
+// @Description Обновляет данные пользователя. Доступно авторизованным пользователям.
+// @Tags users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body userPutReq true "Обновлённые данные"
+// @Success 200 {object} successResponse
+// @Failure 400 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Router /api/users [put]
 func (h *Handler) UpdateUserAPI(ctx *gin.Context) {
-	userID := uint(1)
+	userID, err := h.getUserIDFromJWT(ctx)
 
-	var input struct {
-		Login       *string `json:"login,omitempty"`
-		Name        *string `json:"name,omitempty"`
-		IsModerator *bool   `json:"is_moderator,omitempty"`
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
 	}
+
+	var input userPutReq
+
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -916,11 +1128,8 @@ func (h *Handler) UpdateUserAPI(ctx *gin.Context) {
 	if input.Login != nil {
 		updates["login"] = *input.Login
 	}
-	if input.Name != nil {
-		updates["name"] = *input.Name
-	}
-	if input.IsModerator != nil {
-		updates["is_moderator"] = *input.IsModerator
+	if input.Password != nil {
+		updates["password"] = *input.Password
 	}
 	if len(updates) == 0 {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("нет полей для обновления"))
@@ -940,12 +1149,23 @@ func (h *Handler) UpdateUserAPI(ctx *gin.Context) {
 
 // POST аутентификация
 
+// AuthUserAPI godoc
+//
+//	@Summary		Аутентификация юзера
+//	@Description	Выдача зарегистрированному пользователю JWT-токена
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		authRequest	true	"Введённые пользователем данные"
+//	@Success		200		{object}	loginResp
+//	@Failure		500		{object}	errorResponse
+//
+// @Failure 401 {object} errorResponse "Неавторизован"
+//
+//	@Router			/api/users/log-in [post]
 func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 
-	var request struct {
-		Login    string `json:"login" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+	var request authRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
@@ -957,7 +1177,7 @@ func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(h.JWT.SigningMethod, &JWTClaims{
+	claims := JWTClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(h.JWT.ExpirationTime).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -966,7 +1186,13 @@ func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 		UserID: user.ID,
 		Scopes: []string{}, // test data
 		Role:   role.Creator,
-	})
+	}
+
+	if user.IsModerator {
+		claims.Role = role.Moderator
+	}
+
+	token := jwt.NewWithClaims(h.JWT.SigningMethod, &claims)
 
 	if token == nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("пустой токен"))
@@ -988,9 +1214,64 @@ func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 
 // POST деавторизация
 
+// DeauthUserAPI godoc
+// @Summary Выход пользователя
+// @Description Добавляет JWT-токен в черный список.
+// @Tags users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} successMessageResp
+// @Failure 500 {object} errorResponse
+// @Router /api/users/log-out [post]
 func (h *Handler) DeauthUserAPI(ctx *gin.Context) {
 
-	// Функционал появится, когда можно будет получить информацию из JWT
+	tokenString := ctx.GetHeader("Authorization")
+	if tokenString == "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "деаутентификация выполнена",
+		})
+		return
+	}
+
+	if !strings.HasPrefix(tokenString, jwtPrefix) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "деаутентификация выполнена",
+		})
+		return
+	}
+
+	// Отрезаем префикс
+	tokenString = tokenString[len(jwtPrefix):]
+
+	// Парсим токен чтобы получить expiration time
+	claims := &JWTClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(h.JWT.Token), nil
+	})
+
+	if err != nil || !token.Valid {
+		// Если токен невалиден, все равно считаем выход успешным
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "деаутентификация выполнена",
+		})
+		return
+	}
+
+	// Добавляем токен в черный список
+	if h.Repository.RedisClient != nil {
+		// Время жизни в черном списке = оставшееся время жизни токена
+		remainingTTL := time.Unix(claims.ExpiresAt, 0).Sub(time.Now())
+		if remainingTTL > 0 {
+			err = h.Repository.RedisClient.WriteJWTToBlacklist(ctx.Request.Context(), tokenString, remainingTTL)
+			if err != nil {
+				// Логируем ошибку, но все равно возвращаем успех
+				logrus.Errorf("ошибка добавления токена в черный список: %v", err)
+			}
+		}
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  "success",
