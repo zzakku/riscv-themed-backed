@@ -48,7 +48,6 @@ func New(dsn string, minio_endpoint string, minio_access_key string, minio_secre
 	if err != nil {
 		return nil, err
 	}
-	defer redisClient.Close()
 
 	// if err != nil {
 	// 	return nil ,err
