@@ -24,7 +24,7 @@ const docTemplate = `{
     "paths": {
         "/api/command/{id}": {
             "put": {
-                "description": "Обновить данные неудалённой команды. Доступно модератору.",
+                "description": "Обновить данные неудалённой команды. Доступно ревьюеру.",
                 "produces": [
                     "application/json"
                 ],
@@ -181,7 +181,7 @@ const docTemplate = `{
         },
         "/api/commands/": {
             "post": {
-                "description": "Добавить команду без изображения. Доступно модератору.",
+                "description": "Добавить команду без изображения. Доступно ревьюеру.",
                 "produces": [
                     "application/json"
                 ],
@@ -251,7 +251,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Удаляет команду и ассоциированное изображение в Minio. Доступно модератору.",
+                "description": "Удаляет команду и ассоциированное изображение в Minio. Доступно ревьюеру.",
                 "produces": [
                     "application/json"
                 ],
@@ -286,7 +286,7 @@ const docTemplate = `{
         },
         "/api/commands/{id}/add-image": {
             "get": {
-                "description": "Добавить изображение к команде, сохранив его в Minio. Доступно модератору.",
+                "description": "Добавить изображение к команде, сохранив его в Minio. Доступно ревьюеру.",
                 "produces": [
                     "application/json"
                 ],
@@ -372,7 +372,7 @@ const docTemplate = `{
         },
         "/api/programs": {
             "get": {
-                "description": "Получить список неудалённых программ. Модератор может получить все, оператор - только свои.",
+                "description": "Получить список неудалённых программ. Ревьюер может получить все, оператор - только свои.",
                 "produces": [
                     "application/json"
                 ],
@@ -459,7 +459,7 @@ const docTemplate = `{
         },
         "/api/programs/{id}": {
             "get": {
-                "description": "Получить одну программу. Модератор может получить любую, создатель - только свои.",
+                "description": "Получить одну программу. Ревьюер может получить любую, создатель - только свои.",
                 "consumes": [
                     "application/json"
                 ],
@@ -542,7 +542,7 @@ const docTemplate = `{
         },
         "/api/programs/{id}/moderate": {
             "put": {
-                "description": "Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение модератора, вычисляет конечные поля программы. Доступно модератору.",
+                "description": "Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение ревьюера, вычисляет конечные поля программы. Доступно ревьюеру.",
                 "consumes": [
                     "application/json"
                 ],
@@ -562,7 +562,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Решение модератора",
+                        "description": "Решение ревьюера",
                         "name": "isAccepted",
                         "in": "body",
                         "required": true,

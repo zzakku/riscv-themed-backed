@@ -169,7 +169,7 @@ func (h *Handler) GetCommandByIdAPI(ctx *gin.Context) {
 // AddCommandAPI godoc
 //
 //	@Summary		Добавить команду
-//	@Description	Добавить команду без изображения. Доступно модератору.
+//	@Description	Добавить команду без изображения. Доступно ревьюеру.
 //	@Tags			commands
 //	@Produce		json
 //
@@ -204,7 +204,7 @@ func (h *Handler) AddCommandAPI(ctx *gin.Context) {
 // ModifyCommandAPI godoc
 //
 //	@Summary		Обновить команду
-//	@Description	Обновить данные неудалённой команды. Доступно модератору.
+//	@Description	Обновить данные неудалённой команды. Доступно ревьюеру.
 //	@Tags			commands
 //
 // @Param id path int true "id команды"
@@ -253,7 +253,7 @@ func (h *Handler) ModifyCommandAPI(ctx *gin.Context) {
 // DeleteCommandAPI godoc
 //
 //	@Summary		Удалить команду
-//	@Description	Удаляет команду и ассоциированное изображение в Minio. Доступно модератору.
+//	@Description	Удаляет команду и ассоциированное изображение в Minio. Доступно ревьюеру.
 //	@Tags			commands
 //	@Produce		json
 //
@@ -329,7 +329,7 @@ func (h *Handler) AddCommandToProgramAPI(ctx *gin.Context) {
 // AddCommandImageAPI godoc
 //
 //	@Summary		Добавить изображение
-//	@Description    Добавить изображение к команде, сохранив его в Minio. Доступно модератору.
+//	@Description    Добавить изображение к команде, сохранив его в Minio. Доступно ревьюеру.
 //	@Tags			commands
 //	@Produce		json
 //
@@ -487,13 +487,13 @@ func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 }
 
 //  Получить список программ
-//  (поля программы, НО вместо id создателя/модератора - их логины, статус - исключить черновик и удалённые),
+//  (поля программы, НО вместо id создателя/ревьюера - их логины, статус - исключить черновик и удалённые),
 //  с фильтрацией по диапазону даты формирования и статусу
 
 // GetProgramsAPI godoc
 //
 //	@Summary		Получить список програм
-//	@Description	Получить список неудалённых программ. Модератор может получить все, оператор - только свои.
+//	@Description	Получить список неудалённых программ. Ревьюер может получить все, оператор - только свои.
 //	@Tags			programs
 //	@Produce		json
 //	@Success		200		{object} programCmdsResp
@@ -571,7 +571,7 @@ func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
 // GetProgramAPI godoc
 //
 //	@Summary		Получить одну программу
-//	@Description	Получить одну программу. Модератор может получить любую, создатель - только свои.
+//	@Description	Получить одну программу. Ревьюер может получить любую, создатель - только свои.
 //	@Tags			programs
 //	@Accept			json
 //	@Produce		json
@@ -777,19 +777,19 @@ func (h *Handler) SubmitProgramAPI(ctx *gin.Context) {
 
 }
 
-// PUT завершить/отклонить модератором. При завершить/отклонении заявки проставляется `модератор` и дата завершения.
+// PUT завершить/отклонить ревьюером. При завершить/отклонении заявки проставляется `ревьюер` и дата завершения.
 // Одно из доп. полей `заявки` или `м-м` рассчитывается (реализовать формулу представленную в лаб-2) при завершении заявки
 // (вычисление стоимости заказа, даты доставки в течении месяца, вычисления в м-м).
 
 // ExecuteOrRejectProgramAPI godoc
 //
 //	@Summary		Завершить программу
-//	@Description	Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение модератора, вычисляет конечные поля программы. Доступно модератору.
+//	@Description	Исполняет или отклоняет программу, проставляет в описание программы id принявшего решение ревьюера, вычисляет конечные поля программы. Доступно ревьюеру.
 //	@Tags			programs
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		int	true	"id программы"
-//	@Param			isAccepted	body		moderatorDecisionReq	true	"Решение модератора"
+//	@Param			isAccepted	body		moderatorDecisionReq	true	"Решение ревьюера"
 //	@Success		200		{object} moderatedProgramResp
 //	@Failure		500		{object}	errorResponse
 //	@Router			/api/programs/{id}/moderate [put]

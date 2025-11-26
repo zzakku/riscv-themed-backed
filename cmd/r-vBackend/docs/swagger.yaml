@@ -170,7 +170,7 @@ info:
 paths:
   /api/command/{id}:
     put:
-      description: Обновить данные неудалённой команды. Доступно модератору.
+      description: Обновить данные неудалённой команды. Доступно ревьюеру.
       parameters:
       - description: id команды
         in: path
@@ -273,7 +273,7 @@ paths:
       - commands-programs
   /api/commands/:
     post:
-      description: Добавить команду без изображения. Доступно модератору.
+      description: Добавить команду без изображения. Доступно ревьюеру.
       parameters:
       - description: Добавляемая команда
         in: body
@@ -298,7 +298,7 @@ paths:
   /api/commands/{id}:
     delete:
       description: Удаляет команду и ассоциированное изображение в Minio. Доступно
-        модератору.
+        ревьюеру.
       parameters:
       - description: id команды
         in: path
@@ -344,7 +344,7 @@ paths:
   /api/commands/{id}/add-image:
     get:
       description: Добавить изображение к команде, сохранив его в Minio. Доступно
-        модератору.
+        ревьюеру.
       parameters:
       - description: id команды
         in: path
@@ -421,8 +421,8 @@ paths:
       tags:
       - programs
     get:
-      description: Получить список неудалённых программ. Модератор может получить
-        все, оператор - только свои.
+      description: Получить список неудалённых программ. Ревьюер может получить все,
+        оператор - только свои.
       produces:
       - application/json
       responses:
@@ -443,7 +443,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Получить одну программу. Модератор может получить любую, создатель
+      description: Получить одну программу. Ревьюер может получить любую, создатель
         - только свои.
       parameters:
       - description: id программы
@@ -502,15 +502,15 @@ paths:
       consumes:
       - application/json
       description: Исполняет или отклоняет программу, проставляет в описание программы
-        id принявшего решение модератора, вычисляет конечные поля программы. Доступно
-        модератору.
+        id принявшего решение ревьюера, вычисляет конечные поля программы. Доступно
+        ревьюеру.
       parameters:
       - description: id программы
         in: path
         name: id
         required: true
         type: integer
-      - description: Решение модератора
+      - description: Решение ревьюера
         in: body
         name: isAccepted
         required: true
