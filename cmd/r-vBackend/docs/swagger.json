@@ -73,6 +73,14 @@
                     "commands"
                 ],
                 "summary": "Получить все команды",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поисковый запрос",
+                        "name": "query",
+                        "in": "path"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1069,7 +1077,7 @@
                 "login": {
                     "type": "string"
                 },
-                "passwrod": {
+                "password": {
                     "type": "string"
                 }
             }

@@ -97,20 +97,21 @@ type operandReq struct {
 
 type userPutReq struct {
 	Login    *string `json:"login,omitempty"`
-	Password *string `json:"passwrod,omitempty"`
+	Password *string `json:"password,omitempty"`
 }
 
 // Домен услуги
 
 // GetAllCommandsAPI godoc
 //
-//	@Summary		Получить все команды
-//	@Description	Получить все неудалённые команды. Доступно любому пользователю.
-//	@Tags			commands
-//	@Produce		json
-//	@Success		200	{object}	successResponse
-//	@Failure		500	{object}	errorResponse
-//	@Router			/api/commands [get]
+//		@Summary		Получить все команды
+//		@Description	Получить все неудалённые команды. Доступно любому пользователю.
+//		@Tags			commands
+//	 @Param query path string false "поисковый запрос"
+//		@Produce		json
+//		@Success		200	{object}	successResponse
+//		@Failure		500	{object}	errorResponse
+//		@Router			/api/commands [get]
 func (h *Handler) GetAllCommandsAPI(ctx *gin.Context) {
 	var commands []ds.Command
 	var err error

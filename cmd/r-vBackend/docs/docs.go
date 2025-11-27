@@ -76,6 +76,14 @@ const docTemplate = `{
                     "commands"
                 ],
                 "summary": "Получить все команды",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поисковый запрос",
+                        "name": "query",
+                        "in": "path"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1072,7 +1080,7 @@ const docTemplate = `{
                 "login": {
                     "type": "string"
                 },
-                "passwrod": {
+                "password": {
                     "type": "string"
                 }
             }
