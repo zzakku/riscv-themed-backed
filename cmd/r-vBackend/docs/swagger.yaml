@@ -86,6 +86,13 @@ definitions:
     required:
     - operand
     type: object
+  handler.programCartResp:
+    properties:
+      count:
+        type: integer
+      prg_id:
+        type: integer
+    type: object
   handler.programCmdsResp:
     properties:
       commands_with_operands:
@@ -132,6 +139,13 @@ definitions:
     required:
     - login
     - password
+    type: object
+  handler.successCartResp:
+    properties:
+      data:
+        $ref: '#/definitions/handler.programCartResp'
+      status:
+        type: string
     type: object
   handler.successMessageResp:
     properties:
@@ -564,14 +578,14 @@ paths:
   /api/programs/cart-icon:
     get:
       description: Получает ID текущей программы-черновика и количество команд в ней.
-        Доступно всем, для госта всегда возвращается 0, 0
+        Доступно всем, для гостя всегда возвращается 0, 0
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.programCmdsResp'
+            $ref: '#/definitions/handler.successCartResp'
         "403":
           description: Forbidden
         "500":

@@ -438,7 +438,7 @@ const docTemplate = `{
         },
         "/api/programs/cart-icon": {
             "get": {
-                "description": "Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для госта всегда возвращается 0, 0",
+                "description": "Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для гостя всегда возвращается 0, 0",
                 "produces": [
                     "application/json"
                 ],
@@ -450,7 +450,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.programCmdsResp"
+                            "$ref": "#/definitions/handler.successCartResp"
                         }
                     },
                     "403": {
@@ -979,6 +979,17 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.programCartResp": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "prg_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.programCmdsResp": {
             "type": "object",
             "properties": {
@@ -1046,6 +1057,17 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "handler.successCartResp": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/handler.programCartResp"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

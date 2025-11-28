@@ -46,6 +46,11 @@ type successMessageResp struct {
 	Message string `json:"message"`
 }
 
+type successCartResp struct {
+	Status string          `json:"status"`
+	Data   programCartResp `json:"data"`
+}
+
 type errorResponse struct {
 	Status      string `json:"status"`
 	Description string `json:"description"`
@@ -68,6 +73,11 @@ type programResp struct {
 type commandWithOperand struct {
 	Command ds.Command
 	Operand int
+}
+
+type programCartResp struct {
+	ProgramId int   `json:"prg_id"`
+	Count     int64 `json:"count"`
 }
 
 type programCmdsResp struct {
@@ -451,10 +461,10 @@ func isImage(contentType string) bool {
 // GetProgramCartCountAPI godoc
 //
 //	@Summary		Получить иконку корзины
-//	@Description	Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для госта всегда возвращается 0, 0
+//	@Description	Получает ID текущей программы-черновика и количество команд в ней. Доступно всем, для гостя всегда возвращается 0, 0
 //	@Tags			programs
 //	@Produce		json
-//	@Success		200		{object} programCmdsResp
+//	@Success		200		{object} successCartResp
 //	@Failure		500		{object}	errorResponse
 //
 // @Failure 403
@@ -471,8 +481,10 @@ func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 	if err.Error() == "jwt не имеет нужный префикс" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "success",
-			"prg_id": 0,
-			"count":  0,
+			"data": programCartResp{
+				Count:     0,
+				ProgramId: 0,
+			},
 		})
 		return
 	}
@@ -480,10 +492,14 @@ func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 	count := h.Repository.GetProgramCartCount(userID)
 	prg_id := h.Repository.GetProgramIDByCreatorID(userID)
 
+	resp := programCartResp{
+		Count:     count,
+		ProgramId: prg_id,
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "success",
-		"prg_id": prg_id,
-		"count":  count,
+		"data":   resp,
 	})
 }
 
