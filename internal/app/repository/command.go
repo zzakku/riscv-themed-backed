@@ -717,7 +717,7 @@ func (r *Repository) UpdateUser(userID uint, updates map[string]interface{}) (*d
 		}
 	}
 	if len(updates) > 0 {
-		err := r.db.Where("id = ?", userID).Updates(updates).Error
+		err := r.db.Model(&ds.Users{}).Where("id = ?", userID).Updates(updates).Error
 		if err != nil {
 			return nil, err
 		}

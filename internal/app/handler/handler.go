@@ -72,7 +72,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 			either.PUT("/programs/:id", h.ModifyProgramFieldsAPI)
 			either.PUT("/programs/:id/submit", h.SubmitProgramAPI)
 
-			either.DELETE("/programs/", h.DeleteProgramAPI)
+			either.DELETE("/programs", h.DeleteProgramAPI)
 			either.POST("/commands/:id/add-to-program", h.AddCommandToProgramAPI)
 			either.DELETE("/commands-programs", h.DeleteCommandFromProgramAPI)
 			either.PUT("/commands-programs", h.ModifyCommandOperandAPI)

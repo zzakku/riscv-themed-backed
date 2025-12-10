@@ -478,7 +478,7 @@ func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 		return
 	}
 
-	if err.Error() == "jwt не имеет нужный префикс" {
+	if err != nil && err.Error() == "jwt не имеет нужный префикс" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "success",
 			"data": programCartResp{
@@ -513,42 +513,43 @@ func (h *Handler) GetProgramCartCountAPI(ctx *gin.Context) {
 //	@Description	Получить список неудалённых программ. Ревьюер может получить все, оператор - только свои.
 //	@Tags			programs
 //	@Produce		json
-//	@Success		200		{object} programCmdsResp
-//	@Failure		500		{object}	errorResponse
-//
-// @Failure 403
-//
+//	@Param			status		query	string	false	"Статус программы"
+//	@Param			start_date	query	string	false	"Дата начала фильтрации (формат: DD.MM.YYYY)"
+//	@Param			end_date	query	string	false	"Дата окончания фильтрации (формат: DD.MM.YYYY)"
+//	@Success		200			{object}	successResponse
+//	@Failure		500			{object}	errorResponse
+//	@Failure		403
 //	@Router			/api/programs [get]
 func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
-
 	userID, err := h.getUserIDFromJWT(ctx)
-
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	// Запрос без JSON по шаблону ниже не сработает
+	// Получаем query-параметры
+	status := ctx.Query("status")
+	startDate := ctx.Query("start_date")
+	endDate := ctx.Query("end_date")
 
-	type filter_req struct {
-		StartDate string `json:"start_date"`
-		EndDate   string `json:"end_date"`
-		Status    string `json:"status"`
+	// Валидация формата дат, если они переданы
+	if startDate != "" {
+		if _, err := time.Parse("02.01.2006", startDate); err != nil {
+			h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат start_date, ожидается DD.MM.YYYY"))
+			return
+		}
 	}
 
-	var filter filter_req
-
-	if err := ctx.ShouldBindJSON(&filter); err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
+	if endDate != "" {
+		if _, err := time.Parse("02.01.2006", endDate); err != nil {
+			h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат end_date, ожидается DD.MM.YYYY"))
+			return
+		}
 	}
 
-	var prgs []ds.Program
-
-	prgs, err = h.Repository.GetPrograms(filter.Status, filter.StartDate, filter.EndDate, userID)
-
+	prgs, err := h.Repository.GetPrograms(status, startDate, endDate, userID)
 	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("ошибка обработки запроса"))
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("ошибка обработки запроса: %v", err))
 		return
 	}
 
@@ -578,8 +579,9 @@ func (h *Handler) GetProgramsAPI(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status":   "success",
-		"programs": response,
+		"status":  "success",
+		"message": "команды получены успешно",
+		"data":    response,
 	})
 }
 
@@ -1090,7 +1092,7 @@ func (h *Handler) RegisterUserAPI(ctx *gin.Context) {
 // @Success 200 {object} object{status=string,user=object}
 // @Failure 404 {object} errorResponse
 // @Failure 500 {object} errorResponse
-// @Router /api/users [get]
+// @Router /api/users/profile [get]
 func (h *Handler) GetUserAPI(ctx *gin.Context) {
 
 	userID, err := h.getUserIDFromJWT(ctx)
@@ -1126,7 +1128,7 @@ func (h *Handler) GetUserAPI(ctx *gin.Context) {
 // @Success 200 {object} successResponse
 // @Failure 400 {object} errorResponse
 // @Failure 500 {object} errorResponse
-// @Router /api/users [put]
+// @Router /api/users/profile [put]
 func (h *Handler) UpdateUserAPI(ctx *gin.Context) {
 	userID, err := h.getUserIDFromJWT(ctx)
 
@@ -1146,7 +1148,7 @@ func (h *Handler) UpdateUserAPI(ctx *gin.Context) {
 		updates["login"] = *input.Login
 	}
 	if input.Password != nil {
-		updates["password"] = *input.Password
+		updates["password"] = generateHashString(*input.Password)
 	}
 	if len(updates) == 0 {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("нет полей для обновления"))
@@ -1188,7 +1190,7 @@ func (h *Handler) AuthUserAPI(ctx *gin.Context) {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
-	user, err := h.Repository.AuthUser(request.Login, request.Password)
+	user, err := h.Repository.AuthUser(request.Login, generateHashString(request.Password))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusUnauthorized, err)
 		return

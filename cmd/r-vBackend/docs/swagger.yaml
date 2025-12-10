@@ -442,13 +442,26 @@ paths:
     get:
       description: Получить список неудалённых программ. Ревьюер может получить все,
         оператор - только свои.
+      parameters:
+      - description: Статус программы
+        in: query
+        name: status
+        type: string
+      - description: 'Дата начала фильтрации (формат: DD.MM.YYYY)'
+        in: query
+        name: start_date
+        type: string
+      - description: 'Дата окончания фильтрации (формат: DD.MM.YYYY)'
+        in: query
+        name: end_date
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.programCmdsResp'
+            $ref: '#/definitions/handler.successResponse'
         "403":
           description: Forbidden
         "500":
@@ -595,7 +608,56 @@ paths:
       summary: Получить иконку корзины
       tags:
       - programs
-  /api/users:
+  /api/users/log-in:
+    post:
+      consumes:
+      - application/json
+      description: Выдача зарегистрированному пользователю JWT-токена
+      parameters:
+      - description: Введённые пользователем данные
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.loginResp'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Аутентификация юзера
+      tags:
+      - users
+  /api/users/log-out:
+    post:
+      description: Добавляет JWT-токен в черный список.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successMessageResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя
+      tags:
+      - users
+  /api/users/profile:
     get:
       description: Предоставляет текущему пользователю свои данные. Доступно авторизованным
         пользователям.
@@ -653,55 +715,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновление данных в личном кабинете
-      tags:
-      - users
-  /api/users/log-in:
-    post:
-      consumes:
-      - application/json
-      description: Выдача зарегистрированному пользователю JWT-токена
-      parameters:
-      - description: Введённые пользователем данные
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.authRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handler.loginResp'
-        "401":
-          description: Неавторизован
-          schema:
-            $ref: '#/definitions/handler.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.errorResponse'
-      summary: Аутентификация юзера
-      tags:
-      - users
-  /api/users/log-out:
-    post:
-      description: Добавляет JWT-токен в черный список.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handler.successMessageResp'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handler.errorResponse'
-      security:
-      - BearerAuth: []
-      summary: Выход пользователя
       tags:
       - users
   /api/users/register:
