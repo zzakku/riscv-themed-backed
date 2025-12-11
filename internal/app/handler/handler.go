@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"fmt"
+	"io"
+	"net/http"
 	"r-vBackend/cmd/r-vBackend/docs"
 	"r-vBackend/internal/app/repository"
 	"r-vBackend/internal/app/role"
@@ -65,6 +68,48 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/delete-command", h.DeleteCommand)
 	router.POST("/add-to-program", h.AddToProgram)
 	router.POST("/remove-program/:id", h.DeleteProgram)
+
+	//  ПРОКСИ ДЛЯ MINIO ИЗОБРАЖЕНИЙ ===
+	router.GET("/minio/*path", func(c *gin.Context) {
+		path := c.Param("path")
+
+		// Формируем URL до MinIO
+		minioURL := fmt.Sprintf("http://localhost:9000%s", path)
+
+		// Создаем HTTP клиент
+		client := &http.Client{}
+
+		// Создаем запрос к MinIO
+		req, err := http.NewRequest("GET", minioURL, nil)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request to MinIO"})
+			return
+		}
+
+		// Выполняем запрос к MinIO
+		resp, err := client.Do(req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to MinIO: " + err.Error()})
+			return
+		}
+		defer resp.Body.Close()
+
+		// Копируем заголовки из MinIO
+		for key, values := range resp.Header {
+			for _, value := range values {
+				c.Header(key, value)
+			}
+		}
+
+		// Копируем статус код
+		c.Status(resp.StatusCode)
+
+		// Копируем тело ответа
+		_, err = io.Copy(c.Writer, resp.Body)
+		if err != nil {
+			logrus.Errorf("Failed to copy MinIO response: %v", err)
+		}
+	})
 
 	router.PUT("/api/internal/programs/:id/callback", h.handleRiscVCallback)
 
