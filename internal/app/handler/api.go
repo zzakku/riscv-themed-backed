@@ -102,7 +102,7 @@ type moderatedProgramResp struct {
 }
 
 type operandReq struct {
-	Operand int64 `json:"operand" binding:"required"`
+	Operand *int64 `json:"operand" binding:"required"`
 }
 
 type userPutReq struct {
@@ -1035,7 +1035,7 @@ func (h *Handler) ModifyCommandOperandAPI(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.ModifyCommandOperand(uint(programID), uint(id), newVal.Operand)
+	err = h.Repository.ModifyCommandOperand(uint(programID), uint(id), *newVal.Operand)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
