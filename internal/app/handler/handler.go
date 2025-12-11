@@ -20,12 +20,20 @@ type Handler struct {
 	Repository *repository.Repository
 
 	JWT JWTConfig
+
+	Async *AsyncConfig
 }
 
 type JWTConfig struct {
 	Token          string
 	ExpirationTime time.Duration
 	SigningMethod  jwt.SigningMethod
+}
+
+type AsyncConfig struct {
+	RiscVServiceURL string
+	RiscVAPIKey     string
+	BackendURL      string
 }
 
 func NewHandler(r *repository.Repository) *Handler {
@@ -41,6 +49,11 @@ func NewHandler(r *repository.Repository) *Handler {
 			ExpirationTime: expiration,
 			SigningMethod:  jwt.SigningMethodHS256,
 		},
+		Async: &AsyncConfig{
+			BackendURL:      "http://localhost:8081",
+			RiscVAPIKey:     "go-backend-secret-key-123",
+			RiscVServiceURL: "http://localhost:8000",
+		},
 	}
 }
 
@@ -52,6 +65,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/delete-command", h.DeleteCommand)
 	router.POST("/add-to-program", h.AddToProgram)
 	router.POST("/remove-program/:id", h.DeleteProgram)
+
+	router.PUT("/api/internal/programs/:id/callback", h.handleRiscVCallback)
 
 	api := router.Group("/api")
 	{

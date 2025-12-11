@@ -835,7 +835,14 @@ func (h *Handler) ExecuteOrRejectProgramAPI(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.ExecuteOrRejectProgram(uint(id), moderatorID, *input.IsAccepted)
+	err = h.Repository.ExecuteOrRejectProgram(
+		uint(id),
+		moderatorID,
+		*input.IsAccepted,
+		h.Async.RiscVServiceURL,
+		h.Async.RiscVAPIKey,
+		h.Async.BackendURL,
+	)
 
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -1302,4 +1309,74 @@ func generateHashString(s string) string {
 	h := sha1.New()
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// handleRiscVCallback godoc
+// @Summary Callback от RISC-V сервиса
+// @Description Принимает результаты выполнения программы от RISC-V сервиса
+// @Tags internal
+// @Accept json
+// @Produce json
+// @Param id path int true "ID программы"
+// @Param X-API-Key header string true "API-ключ"
+// @Param body body riscvCallbackRequest true "Результаты выполнения"
+// @Success 200 {object} successResponse
+// @Failure 400 {object} errorResponse
+// @Failure 401 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Router /api/internal/programs/{id}/callback [put]
+// api.go - исправленный handleRiscVCallback
+func (h *Handler) handleRiscVCallback(ctx *gin.Context) {
+	// Проверяем API ключ
+	apiKey := ctx.GetHeader("X-API-Key")
+	if apiKey != h.Async.RiscVAPIKey {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("неверный API ключ"))
+		return
+	}
+
+	// Получаем ID программы
+	idStr := ctx.Param("id")
+	programID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	// Парсим запрос
+	var req struct {
+		ProgramID uint   `json:"program_id"`
+		ResT1     int64  `json:"res_t1"`
+		ResT2     int64  `json:"res_t2"`
+		Status    string `json:"status"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	// Проверяем соответствие ID
+	if uint(programID) != req.ProgramID {
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("несоответствие ID программы: %d != %d", programID, req.ProgramID))
+		return
+	}
+
+	// Обновляем программу в БД через репозиторий
+	err = h.Repository.UpdateProgramResult(uint(programID), req.ResT1, req.ResT2)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError,
+			fmt.Errorf("ошибка обновления программы: %w", err))
+		return
+	}
+
+	// Логируем успешное завершение
+	logrus.Infof("Программа %d успешно выполнена. Результаты: T1=%d, T2=%d",
+		programID, req.ResT1, req.ResT2)
+
+	ctx.JSON(http.StatusOK, successResponse{
+		Status:  "success",
+		Message: "Результаты программы сохранены",
+		Data:    nil,
+	})
 }

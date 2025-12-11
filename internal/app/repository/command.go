@@ -1,11 +1,14 @@
 package repository
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"r-vBackend/internal/app/ds"
 	"strings"
 	"time"
@@ -547,7 +550,50 @@ func (r *Repository) executeCommand(name string, rs int64, imm int64) (int64, er
 	}
 }
 
-func (r *Repository) ExecuteOrRejectProgram(programID uint, moderatorID uint, isAccepted bool) error {
+// command.go - добавьте этот метод в конец файла перед последней }
+
+// UpdateProgramResult обновляет результаты выполнения программы
+func (r *Repository) UpdateProgramResult(programID uint, resT1, resT2 int64) error {
+	toUpdate := map[string]interface{}{
+		"res_t1":      resT1,
+		"res_t2":      resT2,
+		"status":      "завершена",
+		"date_update": time.Now(),
+		"date_finish": time.Now(),
+	}
+
+	err := r.db.Model(&ds.Program{}).
+		Where("id = ?", programID).
+		Updates(toUpdate).Error
+
+	if err != nil {
+		return fmt.Errorf("ошибка обновления программы: %w", err)
+	}
+
+	return nil
+}
+
+// MarkProgramAsFailed отмечает программу как завершенную с ошибкой
+func (r *Repository) MarkProgramAsFailed(programID uint, errorMsg string) error {
+	toUpdate := map[string]interface{}{
+		"status":      "ошибка выполнения",
+		"date_update": time.Now(),
+		"date_finish": time.Now(),
+	}
+
+	err := r.db.Model(&ds.Program{}).
+		Where("id = ?", programID).
+		Updates(toUpdate).Error
+
+	if err != nil {
+		return fmt.Errorf("ошибка обновления программы: %w", err)
+	}
+
+	logrus.Errorf("Программа %d завершена с ошибкой: %s", programID, errorMsg)
+	return nil
+}
+
+func (r *Repository) ExecuteOrRejectProgram(programID uint, moderatorID uint, isAccepted bool, riscvURL, apiKey, backendURL string) error {
 	var prg ds.Program
 
 	err := r.db.Model(&ds.Program{}).Where("id = ? AND status != 'удалена' AND status = 'сформирована'", programID).First(&prg).Error
@@ -556,53 +602,117 @@ func (r *Repository) ExecuteOrRejectProgram(programID uint, moderatorID uint, is
 		return fmt.Errorf("не удалось найти программу с id %d либо она не сформирована: %w", programID, err)
 	}
 
-	to_update := map[string]interface{}{
+	// Обновляем moderator_id и дату в любом случае
+	toUpdate := map[string]interface{}{
 		"moderator_id": moderatorID,
 		"date_update":  time.Now(),
-		"date_finish":  time.Now(),
-		"status":       "отклонена",
 	}
 
-	if isAccepted {
-		type CommandWithOperand struct {
-			ds.Command
-			Operand int
-		}
+	if !isAccepted {
+		// Если отклонена - сразу завершаем
+		toUpdate["date_finish"] = time.Now()
+		toUpdate["status"] = "отклонена"
 
-		var results []CommandWithOperand
-
-		err = r.db.Model(&ds.CommandProgram{}).
-			Select("commands.*, command_programs.operand").
-			Joins("JOIN commands ON command_programs.command_id = commands.id").
-			Where("command_programs.program_id = ?", programID).
-			Where("commands.is_delete = false").
-			Find(&results).Error
-
-		if err != nil {
-			return err
-		}
-
-		regs := [2]int64{int64(*prg.InitT1), int64(*prg.InitT2)}
-
-		for _, cmd := range results {
-			regs[cmd.RdNum-1], err = r.executeCommand(cmd.ComName, int64(regs[cmd.RsNum-1]), int64(cmd.Operand))
-			if err != nil {
-				return err
-			}
-		}
-
-		to_update["status"] = "завершена"
-		to_update["res_t1"] = regs[0]
-		to_update["res_t2"] = regs[1]
+		return r.db.Model(&ds.Program{}).Where("id = ?", programID).Updates(toUpdate).Error
 	}
 
-	err = r.db.Model(&ds.Program{}).Where("id = ?", programID).Updates(to_update).Error
+	// Если принята - отправляем в RISC-V сервис
+
+	// 1. Получаем команды программы
+	type CommandWithOperand struct {
+		ds.Command
+		Operand int
+	}
+
+	var results []CommandWithOperand
+
+	err = r.db.Model(&ds.CommandProgram{}).
+		Select("commands.*, command_programs.operand").
+		Joins("JOIN commands ON command_programs.command_id = commands.id").
+		Where("command_programs.program_id = ?", programID).
+		Where("commands.is_delete = false").
+		Find(&results).Error
 
 	if err != nil {
-		return fmt.Errorf("не удалось обновить программу с id %d: %w", programID, err)
+		return err
 	}
 
-	return nil
+	// 2. Подготавливаем данные для RISC-V сервиса
+	commands := make([]map[string]interface{}, len(results))
+	for i, cmd := range results {
+		commands[i] = map[string]interface{}{
+			"com_name": cmd.ComName,
+			"rd_num":   cmd.RdNum,
+			"rs_num":   cmd.RsNum,
+			"operand":  cmd.Operand,
+		}
+	}
+
+	// 3. Отправляем в RISC-V сервис асинхронно
+	if riscvURL != "" && backendURL != "" {
+		go r.sendToRiscVService(programID, prg.InitT1, prg.InitT2, commands, riscvURL, apiKey, backendURL)
+
+		return nil
+	} else {
+		logrus.Errorf("Ошибка отправки в асинхронный сервис: %v", err)
+		return (err)
+	}
+
+}
+
+// Добавляем новую функцию для отправки в RISC-V сервис
+func (r *Repository) sendToRiscVService(programID uint, initT1, initT2 *int64, commands []map[string]interface{}, riscvURL, apiKey, backendURL string) {
+	// Подготавливаем запрос
+	data := map[string]interface{}{
+		"program_id":             programID,
+		"init_t1":                *initT1,
+		"init_t2":                *initT2,
+		"commands_with_operands": commands,
+		"callback_url":           fmt.Sprintf("%s/api/internal/programs/%d/callback", backendURL, programID),
+		"api_key":                apiKey,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		logrus.Errorf("Ошибка маршалинга данных для RISC-V сервиса: %v", err)
+		r.markProgramAsFailed(programID, err.Error())
+		return
+	}
+
+	// Отправляем запрос
+	req, err := http.NewRequest("PUT", riscvURL+"/api/execute/", bytes.NewBuffer(jsonData))
+	if err != nil {
+		logrus.Errorf("Ошибка создания запроса: %v", err)
+		r.markProgramAsFailed(programID, err.Error())
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		logrus.Errorf("Ошибка отправки в RISC-V сервис: %v", err)
+		r.markProgramAsFailed(programID, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusAccepted {
+		logrus.Errorf("RISC-V сервис вернул ошибку: %d", resp.StatusCode)
+		r.markProgramAsFailed(programID, fmt.Sprintf("HTTP %d", resp.StatusCode))
+	} else {
+		logrus.Infof("Программа %d отправлена в RISC-V сервис", programID)
+	}
+}
+
+func (r *Repository) markProgramAsFailed(programID uint, errorMsg string) {
+	r.db.Model(&ds.Program{}).Where("id = ?", programID).Updates(map[string]interface{}{
+		"status":      "отклонена",
+		"date_update": time.Now(),
+		"date_finish": time.Now(),
+	})
+	logrus.Errorf("Программа %d завершена с ошибкой: %s", programID, errorMsg)
 }
 
 func (r *Repository) DeleteProgram(programID uint) error {
