@@ -1322,7 +1322,7 @@ func generateHashString(s string) string {
 // @Param body body riscvCallbackRequest true "Результаты выполнения"
 // @Success 200 {object} successResponse
 // @Failure 400 {object} errorResponse
-// @Failure 401 {object} errorResponse
+// @Failure 403 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Router /api/internal/programs/{id}/callback [put]
 // api.go - исправленный handleRiscVCallback
@@ -1330,7 +1330,7 @@ func (h *Handler) handleRiscVCallback(ctx *gin.Context) {
 	// Проверяем API ключ
 	apiKey := ctx.GetHeader("X-API-Key")
 	if apiKey != h.Async.RiscVAPIKey {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("неверный API ключ"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("неверный API ключ"))
 		return
 	}
 
