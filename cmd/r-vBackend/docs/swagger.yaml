@@ -140,6 +140,17 @@ definitions:
     - login
     - password
     type: object
+  handler.riscvCallbackRequest:
+    properties:
+      program_id:
+        type: integer
+      res_t1:
+        type: integer
+      res_t2:
+        type: integer
+      status:
+        type: string
+    type: object
   handler.successCartResp:
     properties:
       data:
@@ -216,8 +227,8 @@ paths:
       description: Получить все неудалённые команды. Доступно любому пользователю.
       parameters:
       - description: поисковый запрос
-        in: path
-        name: query
+        in: query
+        name: searchQuery
         type: string
       produces:
       - application/json
@@ -419,6 +430,50 @@ paths:
       summary: Добавить команду в программу
       tags:
       - commands
+  /api/internal/programs/{id}/callback:
+    put:
+      consumes:
+      - application/json
+      description: Принимает результаты выполнения программы от RISC-V сервиса
+      parameters:
+      - description: ID программы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: API-ключ
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      - description: Результаты выполнения
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.riscvCallbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Callback от RISC-V сервиса
+      tags:
+      - internal
   /api/programs:
     delete:
       description: Удаляет программу-черновик текущего пользователя. Заявка определяется

@@ -110,6 +110,13 @@ type userPutReq struct {
 	Password *string `json:"password,omitempty"`
 }
 
+type riscvCallbackRequest struct {
+	ProgramID uint   `json:"program_id"`
+	ResT1     int64  `json:"res_t1"`
+	ResT2     int64  `json:"res_t2"`
+	Status    string `json:"status"`
+}
+
 // Домен услуги
 
 // GetAllCommandsAPI godoc
@@ -117,7 +124,7 @@ type userPutReq struct {
 //		@Summary		Получить все команды
 //		@Description	Получить все неудалённые команды. Доступно любому пользователю.
 //		@Tags			commands
-//	 @Param query path string false "поисковый запрос"
+//	 @Param searchQuery query string false "поисковый запрос"
 //		@Produce		json
 //		@Success		200	{object}	successResponse
 //		@Failure		500	{object}	errorResponse
@@ -1325,7 +1332,6 @@ func generateHashString(s string) string {
 // @Failure 403 {object} errorResponse
 // @Failure 500 {object} errorResponse
 // @Router /api/internal/programs/{id}/callback [put]
-// api.go - исправленный handleRiscVCallback
 func (h *Handler) handleRiscVCallback(ctx *gin.Context) {
 	// Проверяем API ключ
 	apiKey := ctx.GetHeader("X-API-Key")

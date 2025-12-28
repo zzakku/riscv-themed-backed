@@ -77,8 +77,8 @@
                     {
                         "type": "string",
                         "description": "поисковый запрос",
-                        "name": "query",
-                        "in": "path"
+                        "name": "searchQuery",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -365,6 +365,72 @@
                     },
                     "400": {
                         "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/internal/programs/{id}/callback": {
+            "put": {
+                "description": "Принимает результаты выполнения программы от RISC-V сервиса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "Callback от RISC-V сервиса",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID программы",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API-ключ",
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Результаты выполнения",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.riscvCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handler.errorResponse"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -1074,6 +1140,23 @@
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "handler.riscvCallbackRequest": {
+            "type": "object",
+            "properties": {
+                "program_id": {
+                    "type": "integer"
+                },
+                "res_t1": {
+                    "type": "integer"
+                },
+                "res_t2": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
