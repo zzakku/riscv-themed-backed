@@ -13,16 +13,24 @@ type Repository struct {
 	minio_bucket_name string
 }
 
-func New(dsn string, minio_endpoint string, minio_access_key string, minio_secret_key string, minio_bucket_name string) (*Repository, error) {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}) // подключаемся к БД
+type RepositorySettings struct {
+	PostgresDSN     string
+	MinioEndpoint   string
+	MinioAccessKey  string
+	MinioSecretKey  string
+	MinioBucketName string
+}
+
+func New(settings *RepositorySettings) (*Repository, error) {
+	db, err := gorm.Open(postgres.Open(settings.PostgresDSN), &gorm.Config{}) // подключаемся к БД
 	if err != nil {
 		return nil, err
 	}
 
-	useSSL := false // Хардкод
+	useSSL := false // при true подключаемся к MinIO по HTTPS
 
-	minioClient, err := minio.NewWithOptions(minio_endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(minio_access_key, minio_secret_key, ""),
+	minioClient, err := minio.NewWithOptions(settings.MinioEndpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(settings.MinioAccessKey, settings.MinioSecretKey, ""),
 		Secure: useSSL,
 	})
 
@@ -30,10 +38,10 @@ func New(dsn string, minio_endpoint string, minio_access_key string, minio_secre
 		return nil, err
 	}
 
-	// Возвращаем объект Repository с подключенной базой данных
+	// Возвращаем указатель на получившийся Repository
 	return &Repository{
 		db:                db,
 		minio:             minioClient,
-		minio_bucket_name: minio_bucket_name,
+		minio_bucket_name: settings.MinioBucketName,
 	}, nil
 }

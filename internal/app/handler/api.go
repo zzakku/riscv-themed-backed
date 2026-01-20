@@ -243,22 +243,22 @@ func (h *Handler) AddCommandImageAPI(ctx *gin.Context) {
 }
 
 // Проверка типа файла
-func isImage(contentType string) bool {
-	imageTypes := []string{
-		"image/jpeg",
-		"image/jpg",
-		"image/png",
-		"image/gif",
-		"image/webp",
-	}
+// func isImage(contentType string) bool {
+// 	imageTypes := []string{
+// 		"image/jpeg",
+// 		"image/jpg",
+// 		"image/png",
+// 		"image/gif",
+// 		"image/webp",
+// 	}
 
-	for _, t := range imageTypes {
-		if contentType == t {
-			return true
-		}
-	}
-	return false
-}
+// 	for _, t := range imageTypes {
+// 		if contentType == t {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // Домен заявки
 

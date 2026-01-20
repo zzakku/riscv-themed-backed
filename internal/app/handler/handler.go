@@ -26,6 +26,13 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/add-to-program", h.AddToProgram)
 	router.POST("/remove-program/:id", h.DeleteProgram)
 
+	router.GET("/stocks", h.GetStocksAPI)
+	router.GET("/stocks/:id", h.GetStockByIdAPI)
+	router.POST("/stocks", h.AddStockAPI)
+	router.PUT("/stocks/:id", h.ModifyStockAPI)
+	router.DELETE("/stocks/:id", h.DeleteStockAPI)
+	router.GET("/user/:id", h.GetUserStocksAPI)
+
 	api := router.Group("/api")
 	{
 		api.GET("/commands", h.GetAllCommandsAPI)

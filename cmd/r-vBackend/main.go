@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"r-vBackend/internal/app/config"
 	"r-vBackend/internal/app/dsn"
 	"r-vBackend/internal/app/handler"
@@ -22,8 +23,13 @@ func main() {
 	postgresString := dsn.PostgresFromEnv()
 	fmt.Println(postgresString)
 
-	rep, errRep := repository.New(postgresString, dsn.MinioEndpointFromEnv(), dsn.MinioAccessKeyFromEnv(),
-		dsn.MinioSecretKeyFromEnv(), dsn.MinioBucketNameFromEnv())
+	rep, errRep := repository.New(&repository.RepositorySettings{
+		PostgresDSN:     postgresString,
+		MinioEndpoint:   os.Getenv("MINIO_ENDPOINT"),
+		MinioAccessKey:  os.Getenv("MINIO_ACCESS_KEY"),
+		MinioSecretKey:  os.Getenv("MINIO_SECRET_KEY"),
+		MinioBucketName: os.Getenv("MINIO_BUCKET_NAME"),
+	})
 	if errRep != nil {
 		logrus.Fatalf("error initializing repository: %v", errRep)
 	}
